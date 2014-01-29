@@ -4,13 +4,23 @@ var fs = require('fs');
 
 var net = require('net');
 
+var Status = function(el) {
+  this.el = el;
+  this.log = function(message) {
+    el.prepend("<li>"+message+"</li>");
+  };
+}
 
 $(document).ready(function() {
-  var status = $('#status'),
-  fileinput = $('#send #file');
+  var send = {
+    status: new Status($('#send .status')),
+    path: $('#send #file')
+  },
+  receive = {
+    status: $('#receive .status'),
+    host: $('#receive #host')
+  };
 
-  status.text('starting up');
-  
   var server = net.createServer(function(c) { //'connection' listener
     console.log('server connected');
     c.on('end', function() {
@@ -28,8 +38,12 @@ $(document).ready(function() {
     var filepath = fileinput.val();
     fs.exists(filepath, function(exists) {
       if (exists) {
-        alert(filepath);
+        /* Check the size of the file
+         * Create a JSON structure of all parts and md5s
+         * When this is done, start the server and notify
+         */
+        send.status.update("start");
       }
-    });  
+    });
   });
 });
