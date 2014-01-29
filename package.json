@@ -1,0 +1,22 @@
+{
+  "name": "ocelot",
+  "version": "0.0.0",
+  "description": "Reliable file transfer and notification tool",
+  "main": "server.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha test/**/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/DFTi/ocelot.git"
+  },
+  "author": "Keyvan Fatehi",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/DFTi/ocelot/issues"
+  },
+  "homepage": "https://github.com/DFTi/ocelot"
+}
