@@ -2,13 +2,7 @@
   "name": "ocelot",
   "version": "0.0.0",
   "description": "Reliable file transfer and notification tool",
-  "main": "server.js",
-  "directories": {
-    "test": "test"
-  },
-  "scripts": {
-    "test": "mocha test/**/*.js"
-  },
+  "main": "index.html",
   "repository": {
     "type": "git",
     "url": "git://github.com/DFTi/ocelot.git"
@@ -18,5 +12,9 @@
   "bugs": {
     "url": "https://github.com/DFTi/ocelot/issues"
   },
-  "homepage": "https://github.com/DFTi/ocelot"
+  "homepage": "https://github.com/DFTi/ocelot",
+  "window": {
+    "width": 660,
+    "height": 500
+  }
 }
