@@ -18,8 +18,8 @@
     "height": 500
   },
   "dependencies": {
-    "hapi": "~2.1.2",
-    "graceful-fs": "~2.0.1"
+    "graceful-fs": "~2.0.1",
+    "express": "~3.4.8"
   },
   "devDependencies": {
     "sinon": "~1.7.3",

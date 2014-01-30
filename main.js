@@ -18,8 +18,8 @@ $(document).ready(function() {
 
   global.ui = ui;
 
-  ocelot.server.start(function () {
-    ui.tx.log('Serving from ' + ocelot.server.info.uri);
+  ocelot.server.listen(7777, function () {
+    ui.tx.log('Listening on 7777');
   });
 
   ui.tx.file.change(function(e) { ocelot.serve($(e.target).val()); });
