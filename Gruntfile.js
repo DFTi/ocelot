@@ -3,7 +3,7 @@ module.exports = function(grunt) {
     var done = this.async();
     grunt.util.spawn({
       cmd: "dd",
-      args: ['if=/dev/urandom', 'of=test/40meg.iso', 'bs=4m', 'count=10']
+      args: ['if=/dev/urandom', 'of=test/fixtures/40meg.iso', 'bs=4m', 'count=10']
     }, function(err, res, code) {
       grunt.log.writeln(String(res));
       done();

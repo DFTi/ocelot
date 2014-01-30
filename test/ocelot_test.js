@@ -27,7 +27,7 @@ describe("Ocelot", function() {
 
     describe("a 40MB file", function() {
       it("creates many parts", function(done) {
-        ocelot.buildIndex(__dirname+"/40meg.iso", function(err, parts) {
+        ocelot.buildIndex(__dirname+"/fixtures/40meg.iso", function(err, parts) {
           expect(parts[Object.keys(parts)[0]]).to.match(MD5);
           expect(Object.keys(parts)).to.have.length(15);
           done();
