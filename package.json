@@ -20,5 +20,11 @@
   "dependencies": {
     "hapi": "~2.1.2",
     "graceful-fs": "~2.0.1"
+  },
+  "devDependencies": {
+    "sinon": "~1.7.3",
+    "mocha": "~1.17.1",
+    "chai": "~1.9.0",
+    "sinon-chai": "~2.5.0"
   }
 }

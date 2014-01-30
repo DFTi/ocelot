@@ -9,16 +9,14 @@
   .logs td {
     vertical-align: top;
   }
+  .logs td.tx {
+    border-right: 1px solid black;
+  }
 </style>
 </head>
 <body>
 <table>
-  <thead>
-    <tr>
-      <td>Transmitter</td>
-      <td>Receiver</td>
-    </tr>
-  </thead>
+  <thead><tr><td>Transmitter</td><td>Receiver</td></tr></thead>
   <tbody>
   <tr>
     <td class="tx">
@@ -30,8 +28,8 @@
     </td>
   </tr>
   <tr class="logs">
-    <td class="tx"><pre>Ready to transmit</pre></td>
-    <td class="rx"><pre>Ready to receive</pre></td>
+    <td class="tx"><pre></pre></td>
+    <td class="rx"><pre></pre></td>
   </tr>
   </tbody>
 </table>
