@@ -2,7 +2,8 @@ var chai = require('chai');
 expect = chai.expect;
 
 var Ocelot = require(__dirname+'/../lib/ocelot.js'),
-ocelot = null;
+ocelot = null,
+MD5 = /^[0-9a-f]{32}$/i;
 
 describe("Ocelot", function() {
   beforeEach(function() { ocelot = new Ocelot(); });
@@ -14,32 +15,24 @@ describe("Ocelot", function() {
   describe("buildIndex()", function() {
 
     describe("a file smaller than the max part size", function() {
-
       it("creates only one part", function(done) {
         ocelot.buildIndex(__filename, function(err, parts) {
+          expect(parts[Object.keys(parts)[0]]).to.match(MD5);
           expect(Object.keys(parts)).to.have.length(1);
           done();
         });
       });
-
-	
-
     });
 
 
-    describe.only("a big file", function() {
-
+    describe("a 40MB file", function() {
       it("creates many parts", function(done) {
-	this.timeout(3000);
-        ocelot.buildIndex(__dirname+"/bigfile.iso", function(err, parts) {
+        ocelot.buildIndex(__dirname+"/40meg.iso", function(err, parts) {
+          expect(parts[Object.keys(parts)[0]]).to.match(MD5);
           expect(Object.keys(parts)).to.have.length(15);
           done();
         });
       });
-
-	
-
     });
-
   });
 });
