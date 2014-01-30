@@ -5,25 +5,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script type="text/javascript" src="js/jquery-2.1.0.min.js"></script>
 <script type="text/javascript" src="main.js"></script>
+<style type="text/css" media="all">
+  .logs td {
+    vertical-align: top;
+  }
+</style>
 </head>
 <body>
+<table>
+  <thead>
+    <tr>
+      <td>Transmitter</td>
+      <td>Receiver</td>
+    </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td class="tx">
+      <input type="file" name="file" value="" />
+    </td>
 
-<h2>send</h2>
-<div id="send">
-  <input type="file" name="file" id="file" value="" />
-  <ul class="updates">
-  </ul>
-</div>
-
-<hr />
-
-<h2>receive</h2>
-<div id="receive">
-  <input type="text" name="host" id="host" value="localhost:8124" />
-  <ul class="updates">
-  </ul>
-</div>
-
+    <td class="rx">
+      <input type="text" name="host" value="" placeholder="ocelot-foss.org:12345"/>
+    </td>
+  </tr>
+  <tr class="logs">
+    <td class="tx"><pre>Ready to transmit</pre></td>
+    <td class="rx"><pre>Ready to receive</pre></td>
+  </tr>
+  </tbody>
+</table>
 </body>
 </html>
 
