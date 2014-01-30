@@ -1,49 +1,51 @@
 global.$ = $;
+var fs = require('graceful-fs');
 
-var fs = require('fs');
+var Hapi = require('hapi');
 
-var net = require('net');
+// Create a server with a host and port
+var server = Hapi.createServer('localhost', 0);
 
-var Status = function(el) {
-  this.el = el;
-  this.log = function(message) {
-    el.prepend("<li>"+message+"</li>");
-  };
-}
+// Add the route
+server.route({
+    method: 'GET',
+    path: '/hello',
+    handler: function (request, reply) {
+
+        reply('hello world');
+    }
+});
 
 $(document).ready(function() {
-  var send = {
-    status: new Status($('#send .status')),
-    path: $('#send #file')
-  },
-  receive = {
-    status: $('#receive .status'),
-    host: $('#receive #host')
+  var ui = {
+    tx: {
+      log: function(m) { $('.logs .tx pre').prepend(m+"\n") },
+      file: $('.tx input[name=file]')
+    },
+    rx: {
+      log: function(m) { $('.logs .rx pre').prepend(m+"\n") },
+      host: $('.rx input[name=host]')
+    }
   };
 
-  var server = net.createServer(function(c) { //'connection' listener
-    console.log('server connected');
-    c.on('end', function() {
-      console.log('server disconnected');
-    });
-    c.write('hello\r\n');
-    c.pipe(c);
+  server.start(function () {
+    ui.tx.log('Server started at: ' + server.info.uri);
   });
 
-  server.listen(8124, function() { //'listening' listener
-    status.prepend("test");
-  });
 
-  fileinput.change(function() {
-    var filepath = fileinput.val();
+  ui.tx.file.change(function() {
+    var filepath = ui.tx.file.val();
     fs.exists(filepath, function(exists) {
       if (exists) {
         /* Check the size of the file
          * Create a JSON structure of all parts and md5s
          * When this is done, start the server and notify
          */
-        send.status.update("start");
       }
     });
+  });
+
+  ui.rx.host.change(function() {
+    ui.rx.log("Checking");
   });
 });
