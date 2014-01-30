@@ -7,11 +7,11 @@ global.$ = $;
 $(document).ready(function() {
   var ui = {
     tx: {
-      log: function(m) { $('.logs .tx pre').prepend(m+"\n") },
+      log: function(m) { $('.logs .tx pre').append(m+"\n") },
       file: $('.tx input[name=file]')
     },
     rx: {
-      log: function(m) { $('.logs .rx pre').prepend(m+"\n") },
+      log: function(m) { $('.logs .rx pre').append(m+"\n") },
       host: $('.rx input[name=host]')
     }
   };
