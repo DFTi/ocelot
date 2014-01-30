@@ -22,6 +22,24 @@ describe("Ocelot", function() {
         });
       });
 
+	
+
     });
+
+
+    describe.only("a big file", function() {
+
+      it("creates many parts", function(done) {
+	this.timeout(3000);
+        ocelot.buildIndex(__dirname+"/bigfile.iso", function(err, parts) {
+          expect(Object.keys(parts)).to.have.length(15);
+          done();
+        });
+      });
+
+	
+
+    });
+
   });
 });
