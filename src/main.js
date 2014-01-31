@@ -1,4 +1,4 @@
-var Ocelot = require("./lib/ocelot.js"), ocelot = new Ocelot();
+var Ocelot = require("./src/ocelot.js"), ocelot = new Ocelot();
 global.ocelot = ocelot;
 global.$ = $;
 
