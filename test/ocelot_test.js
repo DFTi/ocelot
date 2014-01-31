@@ -35,4 +35,12 @@ describe("Ocelot", function() {
       });
     });
   });
+
+  describe("receive()", function() {
+    describe("when the host is active and will return index.json", function() {
+      it("saves the remote index in memory", function() {
+        //ocelot.receive("localhost:1234");
+      });
+    });
+  });
 });
