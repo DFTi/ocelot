@@ -15,7 +15,8 @@ $(document).ready(function() {
     },
     rx: {
       log: function(m) { scrollBottom($('.logs .rx pre').append(m+"\n")) },
-      host: $('.rx input[name=host]')
+      host: $('.rx input[name=host]'),
+      bin: $('.rx input[name=bin]')
     }
   };
 
@@ -27,4 +28,9 @@ $(document).ready(function() {
 
   ui.tx.file.change(function(e) { ocelot.serve($(e.target).val()); });
   ui.rx.host.change(function(e) { ocelot.receive($(e.target).val()); });
+  ui.rx.bin.change(function(e) {
+    var input = $(e.target).val();
+    ui.rx.log("Will try to use directory path "+input);
+    ocelot.data.rx.binPath = input;
+  });
 });
