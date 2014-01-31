@@ -1,4 +1,6 @@
 app.nw
 *.swp
+tmp/*
+build/*
 *.iso
 node_modules/
