@@ -8,6 +8,9 @@ Ocelot is a reliable file transfer tool
 * it verifies transmitted chunks to ensure integrity upon arrival
 * it supports post-receive hooks that can be used for notification
 
+Note that this is a work in progress so not all features are in and it
+doesn't look pretty.
+
 # Usage
 
 Self-contained executables are coming soon; until then you need
