@@ -13,8 +13,23 @@
     border-right: 1px solid black;
   }
   .logs pre {
-    overflow: scroll;
-    max-height: 300px;
+    overflow-y: scroll;
+    height:364px;
+  }
+
+  td.tx {
+    width: 50%;
+  }
+  td.rx {
+    width: 50%;
+  }
+
+  td.config {
+    height: 60px;
+  }
+  table {
+    width:100%;
+    height:100%;
   }
 </style>
 </head>
@@ -23,12 +38,12 @@
   <thead><tr><td>Transmitter</td><td>Receiver</td></tr></thead>
   <tbody>
   <tr>
-    <td class="tx">
+    <td class="tx config">
       <input type="file" name="file" value="" />
     </td>
 
-    <td class="rx">
-      <input type="text" name="host" value="" placeholder="ocelot-foss.org:12345"/>
+    <td class="rx config">
+      <input type="text" name="host" value="" placeholder="ocelot-foss.org:12345"/><br>
       <input type="text" name="bin" value="" placeholder="directory to save into"/>
     </td>
   </tr>

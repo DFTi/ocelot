@@ -15,7 +15,7 @@
   "homepage": "https://github.com/DFTi/ocelot",
   "window": {
     "toolbar": false,
-    "width": 660,
+    "width": 1000,
     "height": 500
   },
   "dependencies": {
