@@ -19,7 +19,11 @@
   },
   "dependencies": {
     "graceful-fs": "~2.0.1",
-    "express": "~3.4.8"
+    "express": "~3.4.8",
+    "eyespect": "~0.1.10",
+    "filed": "~0.1.0",
+    "temp": "~0.6.0",
+    "request": "~2.33.0"
   },
   "devDependencies": {
     "sinon": "~1.7.3",
