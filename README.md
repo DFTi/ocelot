@@ -8,7 +8,10 @@ Ocelot is a reliable file transfer tool
 * it verifies transmitted chunks to ensure integrity upon arrival
 * it supports post-receive hooks that can be used for notification
 
-# Dependency
+# Usage
+
+Self-contained executables are coming soon; until then you need
+node-webkit
 
 ## node-webkit
 
