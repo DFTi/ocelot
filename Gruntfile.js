@@ -16,6 +16,7 @@ module.exports = function(grunt) {
           'node_modules/temp/**/*',
           'node_modules/graceful-fs/**/*',
           'node_modules/filed/**/*',
+          'node_modules/socket.io/**/*',
           'fonts/**/*',
           'images/**/*',
           'package.json'
@@ -55,6 +56,7 @@ module.exports = function(grunt) {
           'src/3rd_party/jquery.address.js',
           'src/3rd_party/semantic.js',
           'src/3rd_party/runtime.js',
+          'node_modules/socket.io/node_modules/socket.io-client/dist/socket.io.js',
           'tmp/templates.js',
           'src/main.js'
         ],

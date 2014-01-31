@@ -55,6 +55,27 @@ function Ocelot() {
   });
 
   this.server = require('http').createServer(app);
+
+  /*
+   * Don't be stupid. Push don't poll.
+   *
+  // Socket IO server used in transmission
+  this.io = require('socket.io').listen(server);
+
+  io.sockets.on('connection', function (socket) {
+    socket.emit('news', { hello: 'world' });
+    socket.on('my other event', function (data) {
+      console.log(data);
+    });
+  });
+
+  // Socket IO client use in receiving
+  this.socket = io.connect('http://localhost');
+  socket.on('news', function (data) {
+    console.log(data);
+    socket.emit('my other event', { my: 'data' });
+  });
+ */
 };
 
 Ocelot.prototype = {
@@ -107,14 +128,6 @@ Ocelot.prototype = {
     });
   },
 
-  receiverNextTick: function() {
-    request(data.rx.base+"/index.json", function(error, response, body) {
-      if (!error) {
-        this.downloadUsingIndex(JSON.parse(body));
-      }
-    }.bind(this));
-  },
-
   /* Poll this host for index.json -- if we get one, save it and work on it
    * until we get all the parts so we can concat and get the final file */
   receive: function(host) {
@@ -125,6 +138,14 @@ Ocelot.prototype = {
 
     data.rx.poll = setInterval(this.receiverNextTick.bind(this), interval);
     this.receiverNextTick();
+  },
+
+  receiverNextTick: function() {
+    request(data.rx.base+"/index.json", function(error, response, body) {
+      if (!error) {
+        this.downloadUsingIndex(JSON.parse(body));
+      }
+    }.bind(this));
   },
 
   downloadUsingIndex: function(index) {
