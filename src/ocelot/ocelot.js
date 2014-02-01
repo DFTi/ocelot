@@ -93,7 +93,6 @@ Ocelot.prototype.setupReceiver = function(url, callback) {
   }
 };
 
-
 Ocelot.prototype.teardownReceiver = function(callback) {
   if (data.rx.socket && data.rx.socket.socket) {
     data.rx.socket.socket.disconnectSync();
@@ -103,8 +102,8 @@ Ocelot.prototype.teardownReceiver = function(callback) {
     callback();
 };
 
-  // Transmitter
 Ocelot.prototype.setupTransmitter = function(port, callback) {
+  var self = this;
   this.teardownTransmitter(function() {
     data.tx.clients = {}
     this.server = http.createServer(app);
@@ -117,8 +116,17 @@ Ocelot.prototype.setupTransmitter = function(port, callback) {
         console.log("destroyed receiver socket "+socket.id);
       });
 
-      socket.on('receiver:ready', function (data) {
-        socket.data = { name: data.name };
+      socket.on('receiver:ready', function (payload) {
+        socket.data = { name: payload.name };
+        self.emit('ui:tx:update', {
+          receivers: Object.keys(data.tx.clients).map(function(id) {
+            return {
+              id: id,
+              name: data.tx.clients[id].data.name
+            };
+          }),
+          activity: []
+        });
       });
     });
     transmitter.listen(this.server, port, callback);
