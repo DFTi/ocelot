@@ -7,7 +7,7 @@ var node_webkit_window = {
    * Also since this program is a download/upload daemon, when you close the
    * app it is best if it minimizes down into the system tray.
    * https://github.com/rogerwang/node-webkit/wiki/Tray */
-  "width": 1000,
+  "width": 770,
   "height": 500
 };
 

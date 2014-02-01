@@ -1,30 +1,60 @@
+var io = require('socket.io-client');
+
 module.exports = {
+
+  /* Try to connect to a transmitter.
+   * Callback parameters: (err, socket) */
   connect: function(url, callback) {
-    var timeout = 5000;
-    var io = require('socket.io-client');
-    // Cleanup old hosts so we user can try again
+    // Cleanup old hosts so that the user can retry at will
     for (s in io.sockets) { delete io.sockets[s] }
+    var timeout = 2000;
     var socket = io.connect(url, { timeout: timeout });
-    socket.on('connect', function () {
-      callback(true, socket);
-    });
+
     socket.on('error', function(err) {
-      console.log(err);
-      callback(false);
+      callback(err || new Error("error"));
     });
+
     socket.on('connect_error', function(err) {
       console.log('connect_error', err);
-      callback(false);
+      callback(err || new Error("connect_error"));
     });
+
     socket.on('connect_timeout', function() {
       console.log('connect_timeout');
-      callback(false);
+      callback(err || new Error("connect_timeout"));
     });
+
+    socket.on('connect', function () {
+
+      socket.on('reconnect', function(n) {
+        console.log("Reconnected successfully after "+n+" attempts");
+        callback(null, socket);
+      });
+
+      socket.on('reconnect_error', function(err) {
+        callback(err);
+      });
+
+      socket.on('reconnect_failed', function() {
+        callback(new Error("Reconnection failed"));
+      });
+
+      socket.on('disconnect', function() {
+        callback(new Error("Disconnected! Will try reconnecting with exponential backoff."));
+        setTimeout(function() {
+          socket.socket.reconnect();
+        }, 2000);
+      });
+
+      callback(null, socket);
+    });
+
+
     // Sometimes no connection is made nor is an error event emitted
     // We will ensure that we call back by doing a final check.
     setTimeout(function(){
       if (!socket.socket.connected) {
-        callback(false);
+        callback(new Error("Connection attempt fatally timed out"));
       }
     }, (timeout*2));
   }

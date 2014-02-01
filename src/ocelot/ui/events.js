@@ -1,4 +1,15 @@
 module.exports = function(ocelot, ui) {
+  ocelot.on('ui:rx:connected', function() {
+    console.log("Receiver Connected");
+    $('.remote-host .icon').removeClass('red').addClass('green');
+    $('.remote-host').removeClass('loading');
+  });
+
+  ocelot.on('ui:rx:disconnected', function() {
+    console.log("Receiver Disconnected");
+    $('.remote-host .icon').removeClass('green').addClass('red');
+    $('.remote-host').removeClass('loading');
+  });
 
   ocelot.on('ui:tx:add_receiver', function(data) {
     var $receiver = $(JST['templates/tx/receiver'](data));

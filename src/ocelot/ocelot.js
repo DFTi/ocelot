@@ -68,26 +68,36 @@ Ocelot.prototype.buildIndex = function(filepath, callback) {
 
   // Receiver 
 Ocelot.prototype.setupReceiver = function(url, callback) {
+  var self = this;
   if (/localhost|0\.0\.0\.0|127\.0\.0\.1/.test(url)) {
     console.log("No connecting to yourself!");
     callback(false);
   } else {
     this.teardownReceiver(function() {
       console.log('Attempting connection to '+url);
-      receiver.connect(url, function(success, socket) {
-        if (success) {
+      receiver.connect(url, function(err, socket) {
+        if (err || !socket) {
+          console.log("receiver.connect() error: ", err);
+          return self.emit('ui:rx:disconnected');
+        } else {
           socket.emit('receiver:ready', {
             name: os.hostname()
           });
 
           socket.on('incoming:transmission', function (data) {
-            console.log(data)
+            console.log("incoming transmission!");
+            console.log(data);
           }); 
-          data.rx.socket = socket;
-          callback(socket);
-        } else {
-          callback(false);
         }
+        setTimeout(function() {
+          if (socket.socket.connected) {
+            self.emit('ui:rx:connected');
+          } else {
+            self.emit('ui:rx:disconnected');
+          }
+          data.rx.socket = socket;
+          callback();
+        }, 1000);
       });
     });
   }
@@ -111,6 +121,11 @@ Ocelot.prototype.setupTransmitter = function(port, callback) {
     this.server.io.sockets.on('connection', function (socket) {
       data.tx.clients[socket.id] = socket;
 
+      socket.on('error', function(err) {
+        console.log("One of the receivers had an error.", err);
+        console.log("The receiver may eventually reconnect or be reaped.", err);
+      });
+
       socket.on('disconnect', function() {
         self.emit('ui:tx:del_receiver', { id: socket.id });
         delete data.tx.clients[socket.id];
@@ -132,7 +147,7 @@ Ocelot.prototype.teardownTransmitter = function(callback) {
   var self = this;
   if (this.server && this.server.address()) {
     for (c in data.tx.clients) {
-      data.tx.clients[c].disconnect()
+      data.tx.clients[c].disconnect();
     }
     this.server.close(function() {
       this.server = null;
@@ -142,3 +157,4 @@ Ocelot.prototype.teardownTransmitter = function(callback) {
 };
 
 module.exports = Ocelot;
+

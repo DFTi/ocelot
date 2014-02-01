@@ -20,35 +20,27 @@ module.exports = function(ocelot) {
         var hostInput = $('.remote-host input');
         hostInput.keypress(function (e) {
           if (e.which == 13) {
+            $('.remote-host').addClass('loading');
+            console.log("User attempted connect");
             var host = "http://"+($(this).val().replace('http://',''));
             if (connecting) {
-              return;
+              console.log("Connecting already...");
+              return false;
             } else if (ocelot.data.rx.socket) {
-              if (ocelot.data.rx.socket.socket.connected) {
-                if (host === lastUsedHost) return;
+              console.log("Cleaning up an existing socket");
+              ocelot.data.rx.socket.removeAllListeners().socket.disconnectSync();
+              ocelot.data.rx.socket = null;
+              ocelot.emit('ui:rx:disconnected');
+              if (host === lastUsedHost) {
+                console.log("User chose to disconnect");
+                lastUsedHost = null;
+                return false;
               }
             }
+            console.log("Attempting to create a new connection.");
             lastUsedHost = host;
             connecting = true;
-            $('.remote-host').addClass('loading');
-            ocelot.setupReceiver(host, function(socket) {
-              var disconnected = function() {
-                console.log("Receiver Disconnected");
-                $('.remote-host .icon').removeClass('green').addClass('red');
-                $('.remote-host').removeClass('loading');
-              }
-              var connected = function() {
-                console.log("Receiver Connected");
-                $('.remote-host .icon').removeClass('red').addClass('green');
-                $('.remote-host').removeClass('loading');
-              }
-              if (socket) {
-                socket.on('disconnect', disconnected);
-                socket.on('reconnect', connected);
-                connected();
-              } else {
-                disconnected();
-              }
+            ocelot.setupReceiver(host, function() {
               connecting = false;
             });
           }
