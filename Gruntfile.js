@@ -122,4 +122,13 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-jade');
+
+  grunt.registerTask("server", function() {
+    this.async();
+    var Ocelot = require('./src/ocelot/ocelot.js'),
+    ocelot = new Ocelot();
+    ocelot.setupTransmitter(7777, function() {
+      console.log("Listening on 7777");
+    });
+  });
 }
