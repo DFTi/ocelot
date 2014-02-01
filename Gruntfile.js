@@ -1,3 +1,9 @@
+var node_webkit_window = {
+  //"frame": false,
+  "width": 1000,
+  "height": 500
+};
+
 module.exports = function(grunt) {
   grunt.initConfig({
     clean: ["build"],
@@ -35,14 +41,17 @@ module.exports = function(grunt) {
     },
     jade: {
       index: {
-        files: { "build/index.html": ['index.jade'] }
+        files: { "build/index.html": ['templates/index.jade'] }
       },
       templates: {
         options: {
           client: true
         },
         files: {
-          "tmp/templates.js": ['templates/*.jade']
+          "tmp/templates.js": [
+            'templates/receiver.jade',
+            'templates/transmitter.jade'
+          ]
         }
       }
     },
@@ -72,6 +81,20 @@ module.exports = function(grunt) {
     'concat',
     'copy',
   ]);
+
+  grunt.registerTask('set:nw:window', 'Set node-webkit window settings', function() {
+    var fs = require('fs'), done = this.async();
+    fs.readFile('./build/package.json', function(err, data){
+      if (err) throw err;
+      var json = JSON.parse(data);
+      json.window = node_webkit_window;
+      fs.writeFile('./build/package.json', JSON.stringify(json), function(err, data) {
+        if (err) throw err;
+        console.log(json.window);
+        done();
+      });
+    })
+  });
  
   grunt.registerTask("rand40", function() {
     var done = this.async();

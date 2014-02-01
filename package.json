@@ -13,10 +13,6 @@
     "url": "https://github.com/DFTi/ocelot/issues"
   },
   "homepage": "https://github.com/DFTi/ocelot",
-  "window": {
-    "width": 1000,
-    "height": 500
-  },
   "dependencies": {
     "graceful-fs": "~2.0.1",
     "express": "~3.4.8",

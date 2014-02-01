@@ -9,3 +9,8 @@ html, body {
 .hidden {
   display: none !important;
 }
+
+/* Draggable Window for Frameless Support */
+body > #menu {
+  -webkit-app-region: drag;
+}
