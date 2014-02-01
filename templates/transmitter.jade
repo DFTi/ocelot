@@ -8,27 +8,25 @@ p
     input(type='text', name='port', value='', placeholder='Listening port')
     .ui.button Change Port
 .ui.label.teal.ribbon Receivers
-- if (receivers.length > 1)
+- if (receivers.length > 0)
   table.ui.table.segment
     thead
       tr
         th Select
-        th Optional Path Override
-        th IP Address
-        th Last Seen
+        th Optional Subdirectory
+        th Hostname
     tbody
       for item in receivers
-        tr
+        tr.receiver(id="#{item.id}")
           td
             .ui.slider.checkbox
-              input(type='checkbox', name='receiver_1')
+              input(type='checkbox')
               label
           td
             .ui.small.fluid.icon.input
-              input(type='text', placeholder='My/Sub/Directory')
+              input(type='text', placeholder='My/Extra/Folders')
               i.settings.icon
-          td 192.168.0.102
-          td seconds ago
+          td= item.name
   p
     .ui.fluid.action.input
       input(type='file', name='host', value='')

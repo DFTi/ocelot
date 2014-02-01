@@ -6,8 +6,9 @@ express = require('express'),
 path = require('path'),
 http = require('http'),
 os = require('os'),
+util = require('util'),
+events = require('events'),
 app = express();
-
 
 
 /* Ocelot Sources */
@@ -17,7 +18,6 @@ receiver = require(__dirname+'/receiver.js'),
 transmitter = require(__dirname+'/transmitter.js');
 
 
-// Used to store ranges and hashes
 var data = {
   rx: {},
   tx: {}
@@ -34,6 +34,9 @@ function Ocelot() {
 
   this.data = data;
 
+  /* We'll probably just push this once over websocket 
+   * and the receiver can be in charge of keeping it together
+   * with the download queue item */
   app.get('/index.json', function(req, res) {
     res.json(data.index);
   });
@@ -42,7 +45,6 @@ function Ocelot() {
     var offset = req.params.offset;
     var hash = data.index[offset];
     if (hash) {
-      ui.tx.log("Serving offset "+offset);
       var start = parseInt(offset);
       var end = start+PART_SIZE;
       res.writeHead(206, {
@@ -56,213 +58,80 @@ function Ocelot() {
       res.send(404);
     }
   });
-
 };
 
-Ocelot.prototype = {
-  // Helpers
-  buildIndex: function(filepath, callback) {
-    indexer.indexFile(filepath, PART_SIZE, callback);
-  },
+util.inherits(Ocelot, events.EventEmitter);
+
+Ocelot.prototype.buildIndex = function(filepath, callback) {
+  indexer.indexFile(filepath, PART_SIZE, callback);
+};
 
   // Receiver 
-  setupReceiver: function(url, callback) {
-    if (/localhost|0\.0\.0\.0|127\.0\.0\.1/.test(url)) {
-      console.log("No connecting to yourself!");
-      callback(false);
-    } else {
-      this.teardownReceiver(function() {
-        console.log('Attempting connection to '+url);
-        receiver.connect(url, function(success, socket) {
-          if (success) {
-            socket.emit('receiver:ready', {
-              name: os.hostname()
-            });
+Ocelot.prototype.setupReceiver = function(url, callback) {
+  if (/localhost|0\.0\.0\.0|127\.0\.0\.1/.test(url)) {
+    console.log("No connecting to yourself!");
+    callback(false);
+  } else {
+    this.teardownReceiver(function() {
+      console.log('Attempting connection to '+url);
+      receiver.connect(url, function(success, socket) {
+        if (success) {
+          socket.emit('receiver:ready', {
+            name: os.hostname()
+          });
 
-            socket.on('incoming:transmission', function (data) {
-              console.log(data)
-            }); 
-            data.rx.socket = socket;
-            callback(socket);
-          } else {
-            callback(false);
-          }
-        });
+          socket.on('incoming:transmission', function (data) {
+            console.log(data)
+          }); 
+          data.rx.socket = socket;
+          callback(socket);
+        } else {
+          callback(false);
+        }
       });
-    }
-  },
-
-  teardownReceiver: function(callback) {
-    if (data.rx.socket && data.rx.socket.socket) {
-      data.rx.socket.socket.disconnectSync();
-      data.rx.socket = null;
-      callback();
-    } else
-      callback();
-  },
-
-  // Transmitter
-  setupTransmitter: function(port, callback) {
-    this.teardownTransmitter(function() {
-      data.tx.clients = {}
-      this.server = http.createServer(app);
-      this.server.io = require('socket.io').listen(this.server);
-      this.server.io.sockets.on('connection', function (socket) {
-        data.tx.clients[socket.id] = socket;
-
-        socket.on('disconnect', function() {
-          delete data.tx.clients[socket.id];
-          console.log("destroyed receiver socket "+socket.id);
-        });
-
-        socket.on('receiver:ready', function (data) {
-          socket.data = { name: data.name };
-          // cool, update the ui and we get to the next step
-        });
-      });
-      transmitter.listen(this.server, port, callback);
-    }.bind(this));
-  },
-
-  teardownTransmitter: function(callback) {
-    if (this.server && this.server.address()) {
-      this.server.close(function() {
-        this.server = null;
-        callback()
-      }.bind(this));
-    } else { callback() }
-  },
-
-  // Serving a file
-  serve: function(filepath) {
-    fs.exists(filepath, function(exists) {
-      if (exists) {
-        data.filepath = filepath;
-        ui.tx.log("Indexing, please wait ...");
-        setTimeout(function() {
-          ocelot.buildIndex(filepath, function(err, index){
-            if (err) {
-              ui.tx.log("Error: "+err.message);
-            } else {
-              data.index = index;
-              var num_parts = Object.keys(index).length;
-              ui.tx.log("Indexed "+num_parts+" parts. Ready!");
-            }
-          });
-        }, 200);
-      }
-    });
-  },
-
-  /* Poll this host for index.json -- if we get one, save it and work on it
-   * until we get all the parts so we can concat and get the final file */
-  receive: function(host) {
-    if (data.rx.poll) { clearInterval(data.rx.poll); };
-    var interval = 5000;
-    data.rx.base = "http://"+host;
-    ui.rx.log("Target set to "+data.rx.base);
-
-    data.rx.poll = setInterval(this.receiverNextTick.bind(this), interval);
-    this.receiverNextTick();
-  },
-
-  receiverNextTick: function() {
-    request(data.rx.base+"/index.json", function(error, response, body) {
-      if (!error) {
-        this.downloadUsingIndex(JSON.parse(body));
-      }
-    }.bind(this));
-  },
-
-  downloadUsingIndex: function(index) {
-    var base = data.rx.base;
-    var length = Object.keys(index).length;
-    var verifiedParts = 0;
-    Object.keys(index).forEach(function(offset, i) {
-      // Check info about this offset, initialize if no info
-      if (!data.rx.index[offset]) {
-        data.rx.index[offset] = {
-          status: DONT_GOT,
-          path: temp.path({prefix: offset, suffix: '.part'})
-        };
-      }
-      var label = "part "+(i+1)+" of "+length;
-      // Check status of the offset, act accordingly
-      var status = data.rx.index[offset].status;
-      ui.rx.log(offset+" : "+status);
-      switch (status) {
-        case DONT_GOT: {
-          data.rx.index[offset].status = GETTING;
-          var downloadURL = base+"/offset/"+offset;
-          var downloadPath = data.rx.index[offset].path;
-          var downloadFile = filed(downloadPath);
-          var r = request(downloadURL).pipe(downloadFile);
-          /*r.on('data', function(data) {
-            console.log("offset "+offset+"data", data);
-          // good place for progress bar
-          }); */
-          downloadFile.on('end', function () {
-            data.rx.index[offset].status = GOT;
-          });
-
-          downloadFile.on('error', function (err) {
-            ui.rx.log(label+" failed in transit, will retransmit.");
-            data.rx.index[offset].status = DONT_GOT; 
-          });
-          break;
-        }
-        case GETTING: {
-          // TODO check to make sure it's still transferring
-          // for now, just trust that we're getting it...
-          break;
-        }
-        case GOT: {
-          data.rx.index[offset].status = VERIFYING;
-          md5sum(data.rx.index[offset].path, {}, function(hash) {
-            if (hash === index[offset]) {
-              data.rx.index[offset].status = VERIFIED;
-            } else {
-              data.rx.index[offset].status = DONT_GOT;
-            }
-          });
-          break;
-        }
-        case VERIFIED: {
-          // Need to find out if all parts are verified
-          // if so then we are done and can move onto the 
-          // concat phase and rebuild the payload
-          ++verifiedParts;
-        }
-        default: {
-          if (verifiedParts === length) {
-            var dir = data.rx.binPath;
-            if ( fs.existsSync(dir) && fs.statSync(dir).isDirectory() ) {
-              if (data.rx.poll) { clearInterval(data.rx.poll); };
-              ui.rx.log("All parts verified.");
-
-
-              var finalPath = path.join(dir, "ocelot.bin");
-
-              if ( fs.existsSync(finalPath) ) {
-                fs.unlinkSync(finalPath);
-              }
-
-              Object.keys(index).forEach(function(offset, i) {
-                var part = data.rx.index[offset];
-                ui.rx.log("Appending piece "+part.path);
-                fs.appendFileSync(finalPath, fs.readFileSync(part.path));
-                if (length === i+1) {
-                  ui.rx.log("Done. "+finalPath);
-                }
-              });
-            } else {
-              ui.rx.log("Enter a valid directory path to continue");
-            }
-          }
-        }
-      }
     });
   }
-}
+};
+
+
+Ocelot.prototype.teardownReceiver = function(callback) {
+  if (data.rx.socket && data.rx.socket.socket) {
+    data.rx.socket.socket.disconnectSync();
+    data.rx.socket = null;
+    callback();
+  } else
+    callback();
+};
+
+  // Transmitter
+Ocelot.prototype.setupTransmitter = function(port, callback) {
+  this.teardownTransmitter(function() {
+    data.tx.clients = {}
+    this.server = http.createServer(app);
+    this.server.io = require('socket.io').listen(this.server);
+    this.server.io.sockets.on('connection', function (socket) {
+      data.tx.clients[socket.id] = socket;
+
+      socket.on('disconnect', function() {
+        delete data.tx.clients[socket.id];
+        console.log("destroyed receiver socket "+socket.id);
+      });
+
+      socket.on('receiver:ready', function (data) {
+        socket.data = { name: data.name };
+      });
+    });
+    transmitter.listen(this.server, port, callback);
+  }.bind(this));
+};
+
+Ocelot.prototype.teardownTransmitter = function(callback) {
+  if (this.server && this.server.address()) {
+    this.server.close(function() {
+      this.server = null;
+      callback()
+    }.bind(this));
+  } else { callback() }
+};
 
 module.exports = Ocelot;

@@ -119,6 +119,7 @@ module.exports = function(ocelot) {
       }
     }
   };
+  global.ui = ui;
   return ui;
 };
 
