@@ -1,12 +1,13 @@
 .ui.label.teal.ribbon Settings
 p
-  .ui.fluid.action.input
-    input(type='text', name='host', value='', placeholder='ocelot-foss.org:12345')
-    .ui.button Set Target Transmitter
+  .ui.fluid.action.input.storage-path
+    input(id="dirDialog", type="file", style="display:none", nwdirectory)
+    input(type='text', name='bin', value='', disabled="disabled", placeholder='Choose storage root directory')
+    .ui.button Choose
 p
-  .ui.fluid.action.input
-    input(type='text', name='bin', value='', placeholder='/Some/Path/On/Disk')
-    .ui.button Set Storage Path
+  .ui.fluid.icon.input.remote-host
+    input(type='text', name='host', value='', placeholder='ocelot-foss.org:12345')
+    i.red.signal.icon
 p
   .ui.fluid.action.input.hidden
     input(type='text', name='max_connections', value='', placeholder='20')

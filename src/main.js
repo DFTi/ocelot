@@ -6,12 +6,7 @@ global.ocelot = ocelot;
 global.ui = ui;
 global.$ = $;
 
-process.env.PORT = 7777;
-
-var scrollBottom = function(e) {
-  var height = e[0].scrollHeight;
-  e.scrollTop(height);
-};
+process.env.PORT = process.env.PORT || 7777;
 
 var renderReceiver = function() {
   $('#content').html(JST['templates/receiver']({
@@ -23,16 +18,29 @@ var renderReceiver = function() {
   $('#menu .active').removeClass('active');
   $('#menu #rx-tab').addClass('active');
 
-  ui.rx = {
-    log: function(m) { scrollBottom($('.logs .rx pre').append(m+"\n")) },
-    host: $('#content input[name=host]'),
-    bin: $('#content input[name=bin]')
+
+  $('.storage-path .button').click(function() {
+    var chooser = $('.storage-path #dirDialog');
+    chooser.change(function(e) {
+      ui.rx.bin.val($(this).val());
+      ocelot.data.rx.binPath = input;
+    });
+    chooser.trigger('click');  
+  });
+
+  var connect = function(cb) {
+    setTimeout(function() { cb(true) },2000);
   };
-  ui.rx.host.change(function(e) { ocelot.receive($(e.target).val()); });
-  ui.rx.bin.change(function(e) {
-    var input = $(e.target).val();
-    ui.rx.log("Will try to use directory path "+input);
-    ocelot.data.rx.binPath = input;
+
+  $('.remote-host input').change(function(e) {
+    var host = $(this).val();
+    $('.remote-host').addClass('loading');
+    connect(function(connected) {
+      if (connected) {
+        $('.remote-host .icon').removeClass('red').addClass('green');
+        $('.remote-host').removeClass('loading');
+      }
+    });
   });
 };
 
@@ -47,7 +55,7 @@ var renderTransmitter = function() {
   $('#menu #tx-tab').addClass('active');
 
   ui.tx = {
-    log: function(m) { scrollBottom($('.logs .tx pre').append(m+"\n")) },
+    log: function(m) { console.log("TX LOG: "+m); },
     file: $('#content input[name=file]'),
     port: $('#content input[name=port]')
   };
