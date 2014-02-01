@@ -23,7 +23,7 @@ module.exports = function(ocelot) {
             connecting = true;
             var host = "http://"+($(this).val().replace('http://',''));
             $('.remote-host').addClass('loading');
-            ocelot.connectToTransmitter(host, function(socket) {
+            ocelot.setupReceiver(host, function(socket) {
               var disconnected = function() {
                 $('.remote-host .icon').removeClass('green').addClass('red');
                 $('.remote-host').removeClass('loading');

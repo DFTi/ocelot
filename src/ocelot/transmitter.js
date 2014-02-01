@@ -11,11 +11,9 @@ var transmitter = {
         callback(e, null);
       });
       server.listen(port, function() {
-        console.log("listening");
         callback(null, server.address());
       });
     };
-    console.log('listen');
     var addr = server.address(); // Restart the server if it's on.
     if (addr) { if (addr.port !== port) { server.close(startServer); } }
     // Server is not on, so let's start it

@@ -4,10 +4,6 @@ module.exports = {
     var io = require('socket.io-client');
     var socket = io.connect(url, { timeout: timeout });
     socket.on('connect', function () {
-      socket.on('news', function (data) {
-        console.log(data);
-        socket.emit('my other event', { my: 'data' });
-      }); 
       callback(true, socket);
     });
     socket.on('error', function(err) {

@@ -70,7 +70,7 @@ Ocelot.prototype = {
   },
 
   // Receiver 
-  connectToTransmitter: function(url, callback) {
+  setupReceiver: function(url, callback) {
     if (/localhost|0\.0\.0\.0|127\.0\.0\.1/.test(url)) {
       console.log("No connecting to yourself!");
       callback(false);
@@ -78,7 +78,10 @@ Ocelot.prototype = {
       console.log('Attempting connection to '+url);
       receiver.connect(url, function(success, socket) {
         if (success) {
-          // Continue initialization
+          socket.on('news', function (data) {
+            console.log(data);
+            socket.emit('my other event', { my: 'data' });
+          }); 
           callback(socket);
         } else {
           callback(false);
@@ -91,8 +94,8 @@ Ocelot.prototype = {
   setupTransmitter: function(port, callback) {
     this.teardownTransmitter(function() {
       this.server = http.createServer(app);
-      this.txio = require('socket.io').listen(this.server);
-      this.txio.sockets.on('connection', function (socket) {
+      this.server.io = require('socket.io').listen(this.server);
+      this.server.io.sockets.on('connection', function (socket) {
         socket.emit('news', { hello: 'world' });
         socket.on('my other event', function (data) {
           console.log(data);
@@ -106,7 +109,6 @@ Ocelot.prototype = {
     if (this.server && this.server.address()) {
       this.server.close(function() {
         this.server = null;
-        this.txio = null;
         callback()
       }.bind(this));
     } else { callback() }

@@ -1,16 +1,12 @@
 var chai = require('chai');
 expect = chai.expect;
 
-var Ocelot = require(__dirname+'/../lib/ocelot.js'),
-ocelot = null,
+var Ocelot = require(__dirname+'/../src/ocelot/ocelot.js'),
 MD5 = /^[0-9a-f]{32}$/i;
 
 describe("Ocelot", function() {
+  var ocelot = null;
   beforeEach(function() { ocelot = new Ocelot(); });
-
-  it("uses a part size of about 2.7 MB", function() {
-    expect(ocelot.part_size).to.eq(2816000);
-  });
 
   describe("buildIndex()", function() {
 
@@ -36,11 +32,8 @@ describe("Ocelot", function() {
     });
   });
 
-  describe("receive()", function() {
-    describe("when the host is active and will return index.json", function() {
-      it("saves the remote index in memory", function() {
-        //ocelot.receive("localhost:1234");
-      });
+  describe("setupReceiver()", function() {
+    it("connects to a socket.io server", function() {
     });
   });
 });
