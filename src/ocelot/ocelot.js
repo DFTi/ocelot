@@ -18,12 +18,7 @@ transmitter = require(__dirname+'/transmitter.js');
 
 // Used to store ranges and hashes
 var data = {
-  filename: null,
-  index: null,
-  rx: {
-    base: null,
-    index: {}
-  },
+  rx: {},
   tx: {}
 },
 DONT_GOT = 0,
@@ -75,28 +70,49 @@ Ocelot.prototype = {
       console.log("No connecting to yourself!");
       callback(false);
     } else {
-      console.log('Attempting connection to '+url);
-      receiver.connect(url, function(success, socket) {
-        if (success) {
-          socket.on('news', function (data) {
-            console.log(data);
-            socket.emit('my other event', { my: 'data' });
-          }); 
-          callback(socket);
-        } else {
-          callback(false);
-        }
+      this.teardownReceiver(function() {
+        console.log('Attempting connection to '+url);
+        receiver.connect(url, function(success, socket) {
+          if (success) {
+            console.log("connected");
+            socket.on('news', function (data) {
+              console.log(data);
+              socket.emit('my other event', { my: 'data' });
+            }); 
+            data.rx.socket = socket;
+            callback(socket);
+          } else {
+            callback(false);
+          }
+        });
       });
     }
+  },
+
+  teardownReceiver: function(callback) {
+    if (data.rx.socket && data.rx.socket.socket) {
+      data.rx.socket.socket.disconnectSync();
+      data.rx.socket = null;
+      callback();
+    } else
+      callback();
   },
 
   // Transmitter
   setupTransmitter: function(port, callback) {
     this.teardownTransmitter(function() {
+      data.tx.clients = {}
       this.server = http.createServer(app);
       this.server.io = require('socket.io').listen(this.server);
       this.server.io.sockets.on('connection', function (socket) {
+        data.tx.clients[socket.id] = socket;
+
+        socket.on('disconnect', function() {
+          delete data.tx.clients[socket.id];
+        });
+
         socket.emit('news', { hello: 'world' });
+
         socket.on('my other event', function (data) {
           console.log(data);
         });

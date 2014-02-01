@@ -15,20 +15,30 @@ module.exports = function(ocelot) {
         });
 
         var connecting = false;
+        var lastUsedHost = null;
 
         var hostInput = $('.remote-host input');
         hostInput.keypress(function (e) {
           if (e.which == 13) {
-            if (connecting) { return false; }
-            connecting = true;
             var host = "http://"+($(this).val().replace('http://',''));
+            if (connecting) {
+              return;
+            } else if (ocelot.data.rx.socket) {
+              if (ocelot.data.rx.socket.socket.connected) {
+                if (host === lastUsedHost) return;
+              }
+            }
+            lastUsedHost = host;
+            connecting = true;
             $('.remote-host').addClass('loading');
             ocelot.setupReceiver(host, function(socket) {
               var disconnected = function() {
+                console.log("Receiver Disconnected");
                 $('.remote-host .icon').removeClass('green').addClass('red');
                 $('.remote-host').removeClass('loading');
               }
               var connected = function() {
+                console.log("Receiver Connected");
                 $('.remote-host .icon').removeClass('red').addClass('green');
                 $('.remote-host').removeClass('loading');
               }

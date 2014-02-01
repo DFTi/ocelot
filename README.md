@@ -31,6 +31,7 @@ Prebuilt binaries (v0.9.0-rc1 - Jan 28, 2014):
 
 # Other links
 
+* [Socket.IO Server Config](https://github.com/LearnBoost/socket.io/wiki/Configuring-Socket.IO)
 * [Socket.IO Server Events](https://github.com/LearnBoost/socket.io/wiki/Exposed-events)
 * [Socket.IO Client
   Docs](https://github.com/LearnBoost/Socket.io-client)
