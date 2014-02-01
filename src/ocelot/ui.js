@@ -59,12 +59,12 @@ module.exports = function(ocelot) {
           ocelot.setupTransmitter(ocelot.data.tx.port, function(err, addr) {
             if (addr) {
               ocelot.data.tx.port = addr.port;
-              serverToggleSwitch.label.text('Transmitter is listening on port '+addr.port);
               serverToggleSwitch.ui.checkbox('enable');
+              serverToggleSwitch.label.text('Transmitter is listening on port '+addr.port);
               portInput.val(addr.port);
-            } else {
-              serverToggleSwitch.label.text('Transmitter is OFF');
+            } else if (err) {
               serverToggleSwitch.ui.checkbox('disable');
+              serverToggleSwitch.label.text('Transmitter could not start. Error: '+err.code);
             }
           });
         };
@@ -83,6 +83,13 @@ module.exports = function(ocelot) {
           var port = parseInt(portInput.val());
           ocelot.data.tx.port = port;
           setupTransmitter();
+        });
+
+        portInput.keypress(function (e) {
+          if (e.which == 13) {
+            $(this).blur();
+            changePortButton.focus().click();
+          }
         });
       },
 
