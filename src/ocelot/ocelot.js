@@ -5,6 +5,7 @@ temp = require('temp'),
 express = require('express'),
 path = require('path'),
 http = require('http'),
+os = require('os'),
 app = express();
 
 
@@ -74,10 +75,12 @@ Ocelot.prototype = {
         console.log('Attempting connection to '+url);
         receiver.connect(url, function(success, socket) {
           if (success) {
-            console.log("connected");
-            socket.on('news', function (data) {
-              console.log(data);
-              socket.emit('my other event', { my: 'data' });
+            socket.emit('receiver:ready', {
+              name: os.hostname()
+            });
+
+            socket.on('incoming:transmission', function (data) {
+              console.log(data)
             }); 
             data.rx.socket = socket;
             callback(socket);
@@ -109,12 +112,12 @@ Ocelot.prototype = {
 
         socket.on('disconnect', function() {
           delete data.tx.clients[socket.id];
+          console.log("destroyed receiver socket "+socket.id);
         });
 
-        socket.emit('news', { hello: 'world' });
-
-        socket.on('my other event', function (data) {
-          console.log(data);
+        socket.on('receiver:ready', function (data) {
+          socket.data = { name: data.name };
+          // cool, update the ui and we get to the next step
         });
       });
       transmitter.listen(this.server, port, callback);
