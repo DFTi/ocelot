@@ -1,6 +1,6 @@
 module.exports = {
   connect: function(url, callback) {
-    var timeout = 2000;
+    var timeout = 5000;
     var io = require('socket.io-client');
     var socket = io.connect(url, { timeout: timeout });
     socket.on('connect', function () {

@@ -4,9 +4,10 @@ filed = require('filed'),
 temp = require('temp'),
 express = require('express'),
 path = require('path'),
-app = express(),
-server = require('http').createServer(app),
-io = require('socket.io').listen(server);
+http = require('http'),
+app = express();
+
+
 
 /* Ocelot Sources */
 md5sum = require(__dirname+'/md5sum.js'),
@@ -34,10 +35,9 @@ PART_SIZE = 2816000;
 
 function Ocelot() {
   "use strict";
-  this.server = server;
+
   this.data = data;
 
-  // API server used in transmission
   app.get('/index.json', function(req, res) {
     res.json(data.index);
   });
@@ -61,13 +61,6 @@ function Ocelot() {
     }
   });
 
-  /* Define some socket events and get rid of polling */
-  io.sockets.on('connection', function (socket) {
-    socket.emit('news', { hello: 'world' });
-    socket.on('my other event', function (data) {
-      console.log(data);
-    });
-  });
 };
 
 Ocelot.prototype = {
@@ -78,25 +71,46 @@ Ocelot.prototype = {
 
   // Receiver 
   connectToTransmitter: function(url, callback) {
-    receiver.connect(url, function(success, socket) {
-      if (success) {
-        // Continue initialization
-        data.rx.transmitterSocket = socket;
-      }
-      callback(success);
-    });
+    if (/localhost|0\.0\.0\.0|127\.0\.0\.1/.test(url)) {
+      console.log("No connecting to yourself!");
+      callback(false);
+    } else {
+      console.log('Attempting connection to '+url);
+      receiver.connect(url, function(success, socket) {
+        if (success) {
+          // Continue initialization
+          callback(socket);
+        } else {
+          callback(false);
+        }
+      });
+    }
   },
 
   // Transmitter
   setupTransmitter: function(port, callback) {
-    transmitter.listen(this.server, port, callback);
+    this.teardownTransmitter(function() {
+      this.server = http.createServer(app);
+      this.txio = require('socket.io').listen(this.server);
+      this.txio.sockets.on('connection', function (socket) {
+        socket.emit('news', { hello: 'world' });
+        socket.on('my other event', function (data) {
+          console.log(data);
+        });
+      });
+      transmitter.listen(this.server, port, callback);
+    }.bind(this));
   },
 
   teardownTransmitter: function(callback) {
-    if (this.server.address()) { this.server.close(callback); }
-    else { callback() }
+    if (this.server && this.server.address()) {
+      this.server.close(function() {
+        this.server = null;
+        this.txio = null;
+        callback()
+      }.bind(this));
+    } else { callback() }
   },
-
 
   // Serving a file
   serve: function(filepath) {

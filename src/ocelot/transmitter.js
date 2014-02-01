@@ -1,6 +1,7 @@
 var transmitter = {
-  /* Start the server on a specified port. If the server is already
-   * running it is closed and restarted on the new port.
+  /* Start Express and Socket.IO on the specified port.
+   * If the server is already running it is closed and
+   * restarted using the new port.
    *
    * Callback returns error-first: ((object)error, (object)addrinfo)) */
   listen: function(server, portStr, callback) {
@@ -10,9 +11,11 @@ var transmitter = {
         callback(e, null);
       });
       server.listen(port, function() {
+        console.log("listening");
         callback(null, server.address());
       });
     };
+    console.log('listen');
     var addr = server.address(); // Restart the server if it's on.
     if (addr) { if (addr.port !== port) { server.close(startServer); } }
     // Server is not on, so let's start it
