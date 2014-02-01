@@ -76,10 +76,25 @@ Ocelot.prototype.setupReceiver = function(url, callback) {
     this.teardownReceiver(function() {
       console.log('Attempting connection to '+url);
       receiver.connect(url, function(err, socket) {
-        if (err || !socket) {
-          console.log("receiver.connect() error: ", err);
-          return self.emit('ui:rx:disconnected');
-        } else {
+        setTimeout(function() {
+          if (socket) {
+            data.rx.socket = socket;
+            self.emit('ui:rx:connected');
+            callback();
+          } else {
+            self.teardownReceiver(function() {
+              self.emit('ui:rx:disconnected');
+              callback();
+            });
+          }
+        }, 1000);
+        if (err) {
+          if (!socket) err = new Error("Socket dead on arrival");
+          self.teardownReceiver(function() {
+            console.log("receiver.connect() error: ", err);
+            return self.emit('ui:rx:disconnected');
+          });
+        } else if (socket) {
           socket.emit('receiver:ready', {
             name: os.hostname()
           });
@@ -89,23 +104,15 @@ Ocelot.prototype.setupReceiver = function(url, callback) {
             console.log(data);
           }); 
         }
-        setTimeout(function() {
-          if (socket.socket.connected) {
-            self.emit('ui:rx:connected');
-          } else {
-            self.emit('ui:rx:disconnected');
-          }
-          data.rx.socket = socket;
-          callback();
-        }, 1000);
       });
     });
   }
 };
 
 Ocelot.prototype.teardownReceiver = function(callback) {
-  if (data.rx.socket && data.rx.socket.socket) {
-    data.rx.socket.socket.disconnectSync();
+  if (data.rx.socket) {
+    console.log("Cleaning up an existing socket");
+    data.rx.socket.removeAllListeners().socket.disconnect();
     data.rx.socket = null;
     callback();
   } else

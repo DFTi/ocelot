@@ -11,6 +11,7 @@ module.exports = {
     var socket = io.connect(url, { timeout: timeout });
 
     socket.on('error', function(err) {
+      console.log("general socket error");
       callback(err || new Error("error"));
     });
 
@@ -25,30 +26,31 @@ module.exports = {
     });
 
     socket.on('connect', function () {
-
-      socket.on('reconnect', function(n) {
-        console.log("Reconnected successfully after "+n+" attempts");
-        callback(null, socket);
-      });
-
-      socket.on('reconnect_error', function(err) {
-        callback(err);
-      });
-
-      socket.on('reconnect_failed', function() {
-        callback(new Error("Reconnection failed"));
-      });
-
-      socket.on('disconnect', function() {
-        callback(new Error("Disconnected! Will try reconnecting with exponential backoff."));
-        setTimeout(function() {
-          socket.socket.reconnect();
-        }, 2000);
-      });
-
+      console.log("connected");
       callback(null, socket);
     });
 
+    socket.on('reconnect', function(n) {
+      console.log("Reconnected successfully after "+n+" attempts");
+      callback(null, socket);
+    });
+
+    socket.on('reconnect_error', function(err) {
+      console.log("reconnect_error");
+      callback(new Error("Reconnect error"));
+    });
+
+    socket.on('reconnect_failed', function() {
+      console.log("reconnect_failed");
+      callback(new Error("Reconnection failed"));
+    });
+
+    socket.on('disconnect', function() {
+      callback(new Error("Disconnected! Will try reconnecting with exponential backoff."));
+      setTimeout(function() {
+        socket.socket.reconnect();
+      }, 2000);
+    });
 
     // Sometimes no connection is made nor is an error event emitted
     // We will ensure that we call back by doing a final check.

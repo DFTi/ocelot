@@ -27,9 +27,7 @@ module.exports = function(ocelot) {
               console.log("Connecting already...");
               return false;
             } else if (ocelot.data.rx.socket) {
-              console.log("Cleaning up an existing socket");
-              ocelot.data.rx.socket.removeAllListeners().socket.disconnectSync();
-              ocelot.data.rx.socket = null;
+              ocelot.teardownReceiver(function() {});
               ocelot.emit('ui:rx:disconnected');
               if (host === lastUsedHost) {
                 console.log("User chose to disconnect");
