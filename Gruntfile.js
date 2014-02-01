@@ -1,5 +1,12 @@
 var node_webkit_window = {
-  //"frame": false,
+   /*"frame": false,
+   /* If you want to remove the frame, that's OK, the window will be draggable
+   * at the menu bar. However, you need to provide a way to close/minimize.
+   * https://github.com/rogerwang/node-webkit/wiki/Frameless-window
+   *
+   * Also since this program is a download/upload daemon, when you close the
+   * app it is best if it minimizes down into the system tray.
+   * https://github.com/rogerwang/node-webkit/wiki/Tray */
   "width": 1000,
   "height": 500
 };
@@ -23,6 +30,7 @@ module.exports = function(grunt) {
           'node_modules/graceful-fs/**/*',
           'node_modules/filed/**/*',
           'node_modules/socket.io/**/*',
+          'node_modules/socket.io-client/**/*',
           'fonts/**/*',
           'images/**/*',
           'package.json'
@@ -65,7 +73,6 @@ module.exports = function(grunt) {
           'src/3rd_party/jquery.address.js',
           'src/3rd_party/semantic.js',
           'src/3rd_party/runtime.js',
-          'node_modules/socket.io/node_modules/socket.io-client/dist/socket.io.js',
           'tmp/templates.js',
           'src/main.js'
         ],
@@ -80,6 +87,7 @@ module.exports = function(grunt) {
     'jade',
     'concat',
     'copy',
+    'set:nw:window'
   ]);
 
   grunt.registerTask('set:nw:window', 'Set node-webkit window settings', function() {
@@ -88,7 +96,8 @@ module.exports = function(grunt) {
       if (err) throw err;
       var json = JSON.parse(data);
       json.window = node_webkit_window;
-      fs.writeFile('./build/package.json', JSON.stringify(json), function(err, data) {
+      var pretty = JSON.stringify(json, null, '  ');
+      fs.writeFile('./build/package.json', pretty, function(err, data) {
         if (err) throw err;
         console.log(json.window);
         done();

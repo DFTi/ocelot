@@ -7,6 +7,8 @@ express = require('express'),
 path = require('path'),
 app = express();
 
+var socket = null;
+
 // Used to store ranges and hashes
 var data = {
   part_size: 2816000,
@@ -22,6 +24,8 @@ GETTING = 1,
 GOT = 2,
 VERIFYING = 3,
 VERIFIED = 4;
+
+var rx = {};
 
 function Ocelot() {
   "use strict";
@@ -70,11 +74,6 @@ function Ocelot() {
   });
 
   // Socket IO client use in receiving
-  this.socket = io.connect('http://localhost');
-  socket.on('news', function (data) {
-    console.log(data);
-    socket.emit('my other event', { my: 'data' });
-  });
  */
 };
 
@@ -108,6 +107,41 @@ Ocelot.prototype = {
     }.bind(this));
   },
 
+  // Receiver 
+  connectToTransmitter: function(url, callback) {
+    var timeout = 2000;
+    var io = require('socket.io-client');
+    var socket = io.connect(url, { timeout: timeout });
+    socket.on('connect', function () {
+      data.rx.socket = socket;
+      socket.on('news', function (data) {
+        console.log(data);
+        socket.emit('my other event', { my: 'data' });
+      }); 
+      callback(true);
+    });
+    socket.on('error', function(err) {
+      console.log(err);
+      callback(false);
+    });
+    socket.on('connect_error', function(err) {
+      console.log('connect_error', err);
+      callback(false);
+    });
+    socket.on('connect_timeout', function() {
+      console.log('connect_timeout');
+      callback(false);
+    });
+    // Sometimes no connection is made nor is an error event emitted
+    // We will ensure that we call back by doing a final check.
+    setTimeout(function(){callback(socket.socket.connected)}, (timeout*2));
+  },
+
+  // Transmitter
+
+
+
+  // Serving a file
   serve: function(filepath) {
     fs.exists(filepath, function(exists) {
       if (exists) {

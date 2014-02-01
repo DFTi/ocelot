@@ -19,7 +19,8 @@
     "filed": "~0.1.0",
     "temp": "~0.6.0",
     "request": "~2.33.0",
-    "socket.io": "~0.9.16"
+    "socket.io": "~0.9.16",
+    "socket.io-client": "~0.9.16"
   },
   "devDependencies": {
     "sinon": "~1.7.3",
