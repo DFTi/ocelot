@@ -2,37 +2,40 @@ var fs = require('graceful-fs'),
 request = require('request'),
 filed = require('filed'),
 temp = require('temp'),
-md5sum = require(__dirname+'/md5sum.js'),
 express = require('express'),
 path = require('path'),
-app = express();
+app = express(),
+server = require('http').createServer(app),
+io = require('socket.io').listen(server);
 
-var socket = null;
+/* Ocelot Sources */
+md5sum = require(__dirname+'/md5sum.js'),
+indexer = require(__dirname+'/indexer.js'),
+receiver = require(__dirname+'/receiver.js'),
+transmitter = require(__dirname+'/transmitter.js');
+
 
 // Used to store ranges and hashes
 var data = {
-  part_size: 2816000,
   filename: null,
   index: null,
   rx: {
     base: null,
     index: {}
-  }
+  },
+  tx: {}
 },
 DONT_GOT = 0,
 GETTING = 1,
 GOT = 2,
 VERIFYING = 3,
-VERIFIED = 4;
-
-var rx = {};
+VERIFIED = 4,
+PART_SIZE = 2816000;
 
 function Ocelot() {
   "use strict";
-
+  this.server = server;
   this.data = data;
-
-  this.part_size = data.part_size;
 
   // API server used in transmission
   app.get('/index.json', function(req, res) {
@@ -45,7 +48,7 @@ function Ocelot() {
     if (hash) {
       ui.tx.log("Serving offset "+offset);
       var start = parseInt(offset);
-      var end = start+data.part_size;
+      var end = start+PART_SIZE;
       res.writeHead(206, {
         'Content-Type': "application/octet-stream"
       });
@@ -58,87 +61,41 @@ function Ocelot() {
     }
   });
 
-  this.server = require('http').createServer(app);
-
-  /*
-   * Don't be stupid. Push don't poll.
-   *
-  // Socket IO server used in transmission
-  this.io = require('socket.io').listen(server);
-
+  /* Define some socket events and get rid of polling */
   io.sockets.on('connection', function (socket) {
     socket.emit('news', { hello: 'world' });
     socket.on('my other event', function (data) {
       console.log(data);
     });
   });
-
-  // Socket IO client use in receiving
- */
 };
 
 Ocelot.prototype = {
+  // Helpers
   buildIndex: function(filepath, callback) {
-    fs.stat(filepath, function (err, stats) {
-      if (err) {
-        return callback(err);
-      } else {
-        var parts = {};
-        var byte_offset = 0;
-        var size = stats.size;
-        var num_parts = Math.ceil(size / this.part_size);
-        for (var i = 0; i < num_parts; i++) {
-          byte_offset = (this.part_size * i);
-          md5sum(filepath, {
-            start: byte_offset,
-            /* 'end' here may be past the EOF, hopefully this is OK
-             *  and handled by createReadStream -- if not we must handle */
-            end: ( byte_offset + this.part_size )
-          }, function(hash, offset) {
-            parts[String(offset)] = hash;
-            // I dont want to return the below callback until after
-            // all of these hash computations have completed
-            if (Object.keys(parts).length === num_parts) {
-              return callback(null, parts);
-            }
-          });
-        }
-      }
-    }.bind(this));
+    indexer.indexFile(filepath, PART_SIZE, callback);
   },
 
   // Receiver 
   connectToTransmitter: function(url, callback) {
-    var timeout = 2000;
-    var io = require('socket.io-client');
-    var socket = io.connect(url, { timeout: timeout });
-    socket.on('connect', function () {
-      data.rx.socket = socket;
-      socket.on('news', function (data) {
-        console.log(data);
-        socket.emit('my other event', { my: 'data' });
-      }); 
-      callback(true);
+    receiver.connect(url, function(success, socket) {
+      if (success) {
+        // Continue initialization
+        data.rx.transmitterSocket = socket;
+      }
+      callback(success);
     });
-    socket.on('error', function(err) {
-      console.log(err);
-      callback(false);
-    });
-    socket.on('connect_error', function(err) {
-      console.log('connect_error', err);
-      callback(false);
-    });
-    socket.on('connect_timeout', function() {
-      console.log('connect_timeout');
-      callback(false);
-    });
-    // Sometimes no connection is made nor is an error event emitted
-    // We will ensure that we call back by doing a final check.
-    setTimeout(function(){callback(socket.socket.connected)}, (timeout*2));
   },
 
   // Transmitter
+  setupTransmitter: function(port, callback) {
+    transmitter.listen(this.server, port, callback);
+  },
 
+  teardownTransmitter: function(callback) {
+    if (this.server.address()) { this.server.close(callback); }
+    else { callback() }
+  },
 
 
   // Serving a file

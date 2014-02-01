@@ -1,8 +1,12 @@
 .ui.label.teal.ribbon Settings
 p
-  .ui.fluid.action.input.listen-port
+  .ui.slider.checkbox.field.toggle-server
+    input(type='checkbox')
+    label Transmitter is OFF
+p
+  .ui.action.fluid.input.listen-port
     input(type='text', name='port', value='', placeholder='Listening port')
-    .ui.button Reload Server
+    .ui.button Change Port
 .ui.label.teal.ribbon Receivers
 - if (receivers.length > 1)
   table.ui.table.segment
