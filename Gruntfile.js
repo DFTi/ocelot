@@ -57,8 +57,8 @@ module.exports = function(grunt) {
         },
         files: {
           "tmp/templates.js": [
-            'templates/receiver.jade',
-            'templates/transmitter.jade'
+            'templates/rx/**/*.jade',
+            'templates/tx/**/*.jade'
           ]
         }
       }

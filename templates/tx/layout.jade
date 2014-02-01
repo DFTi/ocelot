@@ -8,31 +8,20 @@ p
     input(type='text', name='port', value='', placeholder='Listening port')
     .ui.button Change Port
 .ui.label.teal.ribbon Receivers
-- if (receivers.length > 0)
-  table.ui.table.segment
-    thead
-      tr
-        th Select
-        th Optional Subdirectory
-        th Hostname
-    tbody
-      for item in receivers
-        tr.receiver(id="#{item.id}")
-          td
-            .ui.slider.checkbox
-              input(type='checkbox')
-              label
-          td
-            .ui.small.fluid.icon.input
-              input(type='text', placeholder='My/Extra/Folders')
-              i.settings.icon
-          td= item.name
-  p
-    .ui.fluid.action.input
-      input(type='file', name='host', value='')
-      .ui.button Queue Transmission
-- else
-  .ui.message No receivers are setup to accept transmission
+table.ui.table.segment.receivers.hidden
+  thead
+    tr
+      th Select
+      th Optional Subdirectory
+      th Hostname
+  tbody
+.ui.fluid.action.input.transmission
+  input(type='file', name='host', value='')
+  .ui.button Queue Transmission
+.ui.message.no-receivers No receivers are setup to accept transmission
+
+p
+
 .ui.label.teal.ribbon Activity
 - if (activity.length > 1)
   table.ui.table.segment

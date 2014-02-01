@@ -112,20 +112,15 @@ Ocelot.prototype.setupTransmitter = function(port, callback) {
       data.tx.clients[socket.id] = socket;
 
       socket.on('disconnect', function() {
+        self.emit('ui:tx:del_receiver', { id: socket.id });
         delete data.tx.clients[socket.id];
-        console.log("destroyed receiver socket "+socket.id);
       });
 
       socket.on('receiver:ready', function (payload) {
         socket.data = { name: payload.name };
-        self.emit('ui:tx:update', {
-          receivers: Object.keys(data.tx.clients).map(function(id) {
-            return {
-              id: id,
-              name: data.tx.clients[id].data.name
-            };
-          }),
-          activity: []
+        self.emit('ui:tx:add_receiver', {
+          id: socket.id,
+          name: payload.name
         });
       });
     });
@@ -134,7 +129,11 @@ Ocelot.prototype.setupTransmitter = function(port, callback) {
 };
 
 Ocelot.prototype.teardownTransmitter = function(callback) {
+  var self = this;
   if (this.server && this.server.address()) {
+    for (c in data.tx.clients) {
+      data.tx.clients[c].disconnect()
+    }
     this.server.close(function() {
       this.server = null;
       callback()
