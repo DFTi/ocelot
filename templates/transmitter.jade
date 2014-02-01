@@ -1,0 +1,55 @@
+.ui.label.teal.ribbon Settings
+p
+  .ui.slider.checkbox.field.toggle-server
+    input(type='checkbox')
+    label Transmitter is OFF
+p
+  .ui.action.fluid.input.listen-port
+    input(type='text', name='port', value='', placeholder='Listening port')
+    .ui.button Change Port
+.ui.label.teal.ribbon Receivers
+- if (receivers.length > 1)
+  table.ui.table.segment
+    thead
+      tr
+        th Select
+        th Optional Path Override
+        th IP Address
+        th Last Seen
+    tbody
+      for item in receivers
+        tr
+          td
+            .ui.slider.checkbox
+              input(type='checkbox', name='receiver_1')
+              label
+          td
+            .ui.small.fluid.icon.input
+              input(type='text', placeholder='My/Sub/Directory')
+              i.settings.icon
+          td 192.168.0.102
+          td seconds ago
+  p
+    .ui.fluid.action.input
+      input(type='file', name='host', value='')
+      .ui.button Queue Transmission
+- else
+  .ui.message No receivers are setup to accept transmission
+.ui.label.teal.ribbon Activity
+- if (activity.length > 1)
+  table.ui.table.segment
+    thead
+      tr
+        th Filename
+        th Progress
+        th Rate
+    tbody
+      for item in activity
+        tr
+          td
+            .ui.green.progress
+              .bar(style='width: 93%;')
+          td some...thing.mp4
+          td 12.78 MB/s
+- else
+  .ui.message No activity to report

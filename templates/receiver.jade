@@ -1,0 +1,36 @@
+.ui.label.teal.ribbon Settings
+p
+  .ui.fluid.action.input.storage-path
+    input(id="dirDialog", type="file", style="display:none", nwdirectory)
+    input(type='text', name='bin', value='', disabled="disabled", placeholder='Choose storage root directory')
+    .ui.button Choose
+p
+  .ui.fluid.icon.input.remote-host
+    input(type='text', name='host', value='', placeholder='ocelot-foss.org:12345')
+    i.red.signal.icon
+p
+  .ui.fluid.action.input.hidden
+    input(type='text', name='max_connections', value='', placeholder='20')
+    .ui.button Set Maximum Connections
+p
+  .ui.fluid.action.input.hidden
+    input(type='text', name='rate_limit', value='', placeholder='0 (no rate limit)')
+    .ui.button Set Maximum Rate (KB/s)
+.ui.label.teal.ribbon Queue
+- if (queue.length > 1)
+  table.ui.table.segment
+    thead
+      tr
+        th Progress
+        th Filename
+        th Rate
+    tbody
+      for item in queue
+        tr
+          td
+            .ui.green.progress
+              .bar(style='width: 93%;')
+          td some...thing.mp4
+          td 12.78 MB/s
+- else
+  .ui.message Nothing in the queue

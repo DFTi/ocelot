@@ -1,4 +1,6 @@
 app.nw
 *.swp
-*.iso
+tmp/*
+test/fixtures/*
+build/*
 node_modules/

@@ -1,15 +1,11 @@
 all: bundle
 
 bundle: clean
-	zip app.nw -r ./* -x ./.git\* \
-		test\* \
+	grunt
+	cd build && zip app.nw -r ./* -x  \
 		node_modules/*/test\* \
 		node_modules/*/example\* \
-		node_modules/sinon\* \
-		node_modules/mocha\* \
-		node_modules/grunt\* \
-		node_modules/chai\* \
-		node_modules/sinon-chai\*
+		&& mv app.nw .. && cd ..
 
 run: bundle
 	open app.nw

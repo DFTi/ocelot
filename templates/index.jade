@@ -1,0 +1,17 @@
+doctype html
+html
+  head
+    title Ocelot
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    link(rel='stylesheet', href='css/app.css')
+    script(type='text/javascript', src='js/app.js')
+  body#content
+    .ui.top.attached.purple.menu#menu
+      a.item#rx-tab
+        i.download.icon
+        | Receiver
+      a.item#tx-tab
+        i.upload.icon
+        | Transmitter
+    #receiver.ui.bottom.attached.segment
+    #transmitter.ui.bottom.attached.segment.hidden

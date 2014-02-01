@@ -1,0 +1,22 @@
+html, body {
+  height: 100%;
+  font-size: 15px;
+  margin:0;
+}
+html, body {
+  font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+}  
+
+#content > .segment {
+  margin: 2px 20px 0px 20px
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Draggable Window for Frameless Support */
+body > #menu {
+  -webkit-app-region: drag;
+}
+

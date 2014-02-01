@@ -23,3 +23,14 @@ Prebuilt binaries (v0.9.0-rc1 - Jan 28, 2014):
 * Linux: [32bit](https://s3.amazonaws.com/node-webkit/v0.9.0-rc1/node-webkit-v0.9.0-rc1-linux-ia32.tar.gz) / [64bit] (https://s3.amazonaws.com/node-webkit/v0.9.0-rc1/node-webkit-v0.9.0-rc1-linux-x64.tar.gz)
 * Windows: [win32](https://s3.amazonaws.com/node-webkit/v0.9.0-rc1/node-webkit-v0.9.0-rc1-win-ia32.zip)
 * Mac: [32bit, 10.7+](https://s3.amazonaws.com/node-webkit/v0.9.0-rc1/node-webkit-v0.9.0-rc1-osx-ia32.zip)
+
+# UI Fiddles
+
+* [Receiver mockup](http://jsfiddle.net/jJ7N7/3/)
+* [Transmitter mockup](http://jsfiddle.net/6Zda4/5/)
+
+# Other links
+
+* [Socket.IO Server Events](https://github.com/LearnBoost/socket.io/wiki/Exposed-events)
+* [Socket.IO Client
+  Docs](https://github.com/LearnBoost/Socket.io-client)

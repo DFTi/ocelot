@@ -2,35 +2,42 @@ var fs = require('graceful-fs'),
 request = require('request'),
 filed = require('filed'),
 temp = require('temp'),
-md5sum = require(__dirname+'/md5sum.js'),
 express = require('express'),
 path = require('path'),
+http = require('http'),
 app = express();
+
+
+
+/* Ocelot Sources */
+md5sum = require(__dirname+'/md5sum.js'),
+indexer = require(__dirname+'/indexer.js'),
+receiver = require(__dirname+'/receiver.js'),
+transmitter = require(__dirname+'/transmitter.js');
+
 
 // Used to store ranges and hashes
 var data = {
-  part_size: 2816000,
   filename: null,
   index: null,
   rx: {
     base: null,
     index: {}
-  }
+  },
+  tx: {}
 },
 DONT_GOT = 0,
 GETTING = 1,
 GOT = 2,
 VERIFYING = 3,
-VERIFIED = 4;
+VERIFIED = 4,
+PART_SIZE = 2816000;
 
 function Ocelot() {
   "use strict";
 
   this.data = data;
 
-  this.part_size = data.part_size;
-
-  // API server used in transmission
   app.get('/index.json', function(req, res) {
     res.json(data.index);
   });
@@ -41,7 +48,7 @@ function Ocelot() {
     if (hash) {
       ui.tx.log("Serving offset "+offset);
       var start = parseInt(offset);
-      var end = start+data.part_size;
+      var end = start+PART_SIZE;
       res.writeHead(206, {
         'Content-Type': "application/octet-stream"
       });
@@ -54,39 +61,60 @@ function Ocelot() {
     }
   });
 
-  this.server = require('http').createServer(app);
 };
 
 Ocelot.prototype = {
+  // Helpers
   buildIndex: function(filepath, callback) {
-    fs.stat(filepath, function (err, stats) {
-      if (err) {
-        return callback(err);
-      } else {
-        var parts = {};
-        var byte_offset = 0;
-        var size = stats.size;
-        var num_parts = Math.ceil(size / this.part_size);
-        for (var i = 0; i < num_parts; i++) {
-          byte_offset = (this.part_size * i);
-          md5sum(filepath, {
-            start: byte_offset,
-            /* 'end' here may be past the EOF, hopefully this is OK
-             *  and handled by createReadStream -- if not we must handle */
-            end: ( byte_offset + this.part_size )
-          }, function(hash, offset) {
-            parts[String(offset)] = hash;
-            // I dont want to return the below callback until after
-            // all of these hash computations have completed
-            if (Object.keys(parts).length === num_parts) {
-              return callback(null, parts);
-            }
-          });
+    indexer.indexFile(filepath, PART_SIZE, callback);
+  },
+
+  // Receiver 
+  setupReceiver: function(url, callback) {
+    if (/localhost|0\.0\.0\.0|127\.0\.0\.1/.test(url)) {
+      console.log("No connecting to yourself!");
+      callback(false);
+    } else {
+      console.log('Attempting connection to '+url);
+      receiver.connect(url, function(success, socket) {
+        if (success) {
+          socket.on('news', function (data) {
+            console.log(data);
+            socket.emit('my other event', { my: 'data' });
+          }); 
+          callback(socket);
+        } else {
+          callback(false);
         }
-      }
+      });
+    }
+  },
+
+  // Transmitter
+  setupTransmitter: function(port, callback) {
+    this.teardownTransmitter(function() {
+      this.server = http.createServer(app);
+      this.server.io = require('socket.io').listen(this.server);
+      this.server.io.sockets.on('connection', function (socket) {
+        socket.emit('news', { hello: 'world' });
+        socket.on('my other event', function (data) {
+          console.log(data);
+        });
+      });
+      transmitter.listen(this.server, port, callback);
     }.bind(this));
   },
 
+  teardownTransmitter: function(callback) {
+    if (this.server && this.server.address()) {
+      this.server.close(function() {
+        this.server = null;
+        callback()
+      }.bind(this));
+    } else { callback() }
+  },
+
+  // Serving a file
   serve: function(filepath) {
     fs.exists(filepath, function(exists) {
       if (exists) {
@@ -107,14 +135,6 @@ Ocelot.prototype = {
     });
   },
 
-  receiverNextTick: function() {
-    request(data.rx.base+"/index.json", function(error, response, body) {
-      if (!error) {
-        this.downloadUsingIndex(JSON.parse(body));
-      }
-    }.bind(this));
-  },
-
   /* Poll this host for index.json -- if we get one, save it and work on it
    * until we get all the parts so we can concat and get the final file */
   receive: function(host) {
@@ -125,6 +145,14 @@ Ocelot.prototype = {
 
     data.rx.poll = setInterval(this.receiverNextTick.bind(this), interval);
     this.receiverNextTick();
+  },
+
+  receiverNextTick: function() {
+    request(data.rx.base+"/index.json", function(error, response, body) {
+      if (!error) {
+        this.downloadUsingIndex(JSON.parse(body));
+      }
+    }.bind(this));
   },
 
   downloadUsingIndex: function(index) {
