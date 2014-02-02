@@ -20,22 +20,23 @@ module.exports = function(ocelot) {
         var hostInput = $('.remote-host input');
         hostInput.keypress(function (e) {
           if (e.which == 13) {
+            if (ocelot.receiverConnected()) {
+              console.log("User is still connected disconnect");
+              if (host === lastUsedHost) {
+                console.log("User chose to disconnect");
+                ocelot.teardownReceiver();
+                lastUsedHost = null;
+                return false;
+              } else {
+                console.log("User will try to change hosts");
+              }
+            }
             $('.remote-host').addClass('loading');
-            console.log("User attempted connect");
             var host = "http://"+($(this).val().replace('http://',''));
             if (connecting) {
               console.log("Connecting already...");
               return false;
-            } else if (ocelot.data.rx.socket) {
-              ocelot.teardownReceiver(function() {});
-              ocelot.emit('ui:rx:disconnected');
-              if (host === lastUsedHost) {
-                console.log("User chose to disconnect");
-                lastUsedHost = null;
-                return false;
-              }
             }
-            console.log("Attempting to create a new connection.");
             lastUsedHost = host;
             connecting = true;
             ocelot.setupReceiver(host, function() {

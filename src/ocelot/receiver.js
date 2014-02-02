@@ -4,16 +4,11 @@ module.exports = {
 
   /* Try to connect to a transmitter.
    * Callback parameters: (err, socket) */
-  connect: function(url, ocelot) {
+  connect: function(url, ocelot, callback) {
     // Cleanup old hosts so that the user can retry at will
     for (s in io.sockets) { delete io.sockets[s] }
     // Remove any existing socket
-    if (ocelot.socket != null) {
-      console.log("cleaning up old socket");
-      ocelot.socket.disconnect();
-      ocelot.socket.removeAllListeners();
-      ocelot.socket = null;
-    }
+    ocelot.teardownReceiver();
     var timeout = 2000;
     var socket = io.connect(url, { timeout: timeout });
     ocelot.socket = socket;
@@ -29,6 +24,8 @@ module.exports = {
         console.log("incoming transmission!");
         console.log(data);
       }); 
+
+      callback();
     });// - "connect" is emitted when the socket connected successfully
     socket.on('connecting', function () {
       console.log('socket is attempting to connect with the server.');

@@ -64,6 +64,10 @@ function Ocelot() {
 
 util.inherits(Ocelot, events.EventEmitter);
 
+Ocelot.prototype.receiverConnected = function() {
+  return (this.socket && this.socket.socket && this.socket.socket.connected);
+};
+
 Ocelot.prototype.buildIndex = function(filepath, callback) {
   indexer.indexFile(filepath, PART_SIZE, callback);
 };
@@ -75,7 +79,19 @@ Ocelot.prototype.setupReceiver = function(url, callback) {
     console.log("No connecting to yourself!");
     callback(false);
   } else {
-    receiver.connect(url, ocelot);
+    receiver.connect(url, ocelot, callback);
+  }
+};
+
+Ocelot.prototype.teardownReceiver = function () {
+  if (this.socket) {
+    console.log("cleaning up old socket");
+    this.socket.disconnect();
+    this.socket.removeAllListeners();
+    this.socket.on('connect', function() {
+      this.socket.disconnect();
+    });
+    this.socket = null; // get GC'd eventually
   }
 };
 
