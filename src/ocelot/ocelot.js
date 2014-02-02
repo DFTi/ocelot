@@ -5,7 +5,6 @@ temp = require('temp'),
 express = require('express'),
 path = require('path'),
 http = require('http'),
-os = require('os'),
 util = require('util'),
 events = require('events'),
 app = express();
@@ -74,13 +73,7 @@ Ocelot.prototype.buildIndex = function(filepath, callback) {
 
   // Receiver 
 Ocelot.prototype.setupReceiver = function(url, callback) {
-  var self = this;
-  if (/localhost|0\.0\.0\.0|127\.0\.0\.1/.test(url)) {
-    console.log("No connecting to yourself!");
-    callback(false);
-  } else {
-    receiver.connect(url, ocelot, callback);
-  }
+  receiver.connect(url, this, callback);
 };
 
 Ocelot.prototype.teardownReceiver = function () {

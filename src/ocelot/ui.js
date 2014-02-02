@@ -20,6 +20,7 @@ module.exports = function(ocelot) {
         var hostInput = $('.remote-host input');
         hostInput.keypress(function (e) {
           if (e.which == 13) {
+            var host = "http://"+($(this).val().replace('http://', ''));
             if (ocelot.receiverConnected()) {
               console.log("User is still connected disconnect");
               if (host === lastUsedHost) {
@@ -32,8 +33,10 @@ module.exports = function(ocelot) {
               }
             }
             $('.remote-host').addClass('loading');
-            var host = "http://"+($(this).val().replace('http://',''));
-            if (connecting) {
+            if (/localhost|0\.0\.0\.0|127\.0\.0\.1/.test(host)) {
+              alert("No loopback connections allowed!");
+              return false;
+            } else if (connecting) {
               console.log("Connecting already...");
               return false;
             }
