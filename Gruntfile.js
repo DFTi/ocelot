@@ -88,7 +88,7 @@ module.exports = function(grunt) {
         "templates/**/*.jade",
         "css/**/*.css"
       ],
-      tasks: ['default']
+      tasks: ['default', 'open']
     }
   });
 
@@ -137,6 +137,17 @@ module.exports = function(grunt) {
       args: ['bundle']
     }, function(err, res, code) {
       grunt.log.writeln("Bundling app.nw");
+      done();
+    });
+  });
+
+  grunt.registerTask("open", function() {
+    var done = this.async();
+    grunt.util.spawn({
+      cmd: "open",
+      args: ['app.nw']
+    }, function(err, res, code) {
+      grunt.log.writeln("Opening app.nw");
       done();
     });
   });
