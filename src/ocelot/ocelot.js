@@ -11,7 +11,8 @@ app = express();
 md5sum = require(__dirname+'/md5sum.js').string,
 indexer = require(__dirname+'/indexer.js'),
 receiver = require(__dirname+'/receiver.js'),
-transmitter = require(__dirname+'/transmitter.js');
+transmitter = require(__dirname+'/transmitter.js'),
+Download = require(__dirname+'/download.js');
 
 var data = {
   rx: {
@@ -78,7 +79,7 @@ Ocelot.prototype.teardownReceiver = function () {
 };
 
 Ocelot.prototype.startDownload = function(payload, done, progress) {
-  var download = new Download(data.rx.transfers, payload.id, url);
+  var download = new Download(data.rx.transfers, payload);
   var working = false;
 
   download.eachOffset(function(offset, meta, i) {

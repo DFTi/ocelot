@@ -1,5 +1,6 @@
 var util = require('util'),
 fs = require('graceful-fs'),
+path = require('path'),
 request = require('request'),
 filed = require('filed'),
 temp = require('temp'),
@@ -54,6 +55,10 @@ Download.prototype.eachOffset = function(cb) {
   }.bind(this));
 };
 
+Download.prototype.remoteHash = function(offset) {
+  return this.data.payload.index[offset];
+};
+
 /* when you need it you eventually get it. i.e.
  * this method brings the download to a finish */
 Download.prototype.needs = function(offset, meta, progress) {
@@ -70,7 +75,7 @@ Download.prototype.needs = function(offset, meta, progress) {
   var downloadFile = filed(meta.path);
   var r = request(downloadURL).pipe(downloadFile);
   r.on('data', function(data) {
-    console.log("offset "+offset+"data", data);
+//    console.log("offset "+offset+"data", data);
     // TODO progress bar and throughput
   });
 
@@ -78,7 +83,7 @@ Download.prototype.needs = function(offset, meta, progress) {
     meta.status = GOT;
     meta.status = VERIFYING;
     md5sum(meta.path, {}, function(hash) {
-      if (hash === index[offset]) {
+      if (hash === self.remoteHash(offset)) {
         meta.status = VERIFIED;
         ++self.verifiedParts;
         if (self.verifiedParts === self.totalParts) {

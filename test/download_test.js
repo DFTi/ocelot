@@ -103,6 +103,11 @@ describe("Download", function() {
     expect(dl.filename).to.eq('foo.mp4');
   });
 
+  it("gives us the remote md5 for the chunk at offset", function() {
+    expect(dl.remoteHash('1024')).to.eq('bfawefawf');
+  });
+
+
   /*
 
   describe("remote data getter", function() {

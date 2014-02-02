@@ -1,4 +1,7 @@
-all: bundle
+all: run
+
+clean:
+	rm -rf app.nw
 
 bundle: clean
 	cd build && zip app.nw -r ./* -x  \
@@ -6,12 +9,14 @@ bundle: clean
 		node_modules/*/example\* \
 		&& mv app.nw .. && cd ..
 
-run: bundle
+grunt:
+	grunt
+
+run: clean
+	grunt
 	open app.nw
 
-clean:
-	rm -rf app.nw
-
-publish: bundle
+publish:
+	grunt
 	scp app.nw strider@strider.critiqueapp.com:~/public-web/ocelot.nw
 	echo https://public.strider.critiqueapp.com/ocelot.nw
