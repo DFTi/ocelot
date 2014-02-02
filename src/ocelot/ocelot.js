@@ -33,23 +33,18 @@ function Ocelot() {
 
   this.data = data;
 
-  /* We'll probably just push this once over websocket 
-   * and the receiver can be in charge of keeping it together
-   * with the download queue item */
-  app.get('/index.json', function(req, res) {
-    res.json(data.index);
-  });
-
-  app.get('/offset/:offset', function(req, res) {
-    var offset = req.params.offset;
-    var hash = data.index[offset];
-    if (hash) {
+  app.get('/:id/:offset', function(req, res) {
+    var id = req.params.id,
+    offset = req.params.offset,
+    filepath = data.tx[id];
+    if ( id && offset && filepath ) {
       var start = parseInt(offset);
       var end = start+PART_SIZE;
       res.writeHead(206, {
         'Content-Type': "application/octet-stream"
       });
-      fs.createReadStream(data.filepath, {
+      console.log("delivering chunk!");
+      fs.createReadStream(filepath, {
         start: start,
         end: end
       }).pipe(res);
