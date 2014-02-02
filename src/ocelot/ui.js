@@ -22,9 +22,9 @@ module.exports = function(ocelot) {
           if (e.which == 13) {
             var host = "http://"+($(this).val().replace('http://', ''));
             if (ocelot.receiverConnected()) {
-              console.log("User is still connected disconnect");
+              console.log("User is still connected");
               if (host === lastUsedHost) {
-                console.log("User chose to disconnect");
+                console.log("User chose to disconnect from previous host");
                 ocelot.teardownReceiver();
                 lastUsedHost = null;
                 return false;

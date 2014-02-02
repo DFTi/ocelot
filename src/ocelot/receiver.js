@@ -10,7 +10,7 @@ module.exports = {
     for (s in io.sockets) { delete io.sockets[s] }
     // Remove any existing socket
     ocelot.teardownReceiver();
-    var timeout = 2000;
+    var timeout = 1500;
     var socket = io.connect(url, { timeout: timeout });
     ocelot.socket = socket;
     socket.on('connect', function () {
@@ -38,10 +38,12 @@ module.exports = {
     socket.on('connect_failed', function () {
       ocelot.emit('ui:rx:disconnected');
       console.log('connected failed, no fallback transports');
+      callback();
     });// - "connect_failed" is emitted when socket.io fails to establish a connection to the server and has no more transports to fallback to.
     socket.on('error', function () {
       ocelot.emit('ui:rx:disconnected');
       console.log("socket error");
+      callback();
     });// - "error" is emitted when an error occurs and it cannot be handled by the other event types.
     socket.on('message', function (message, callback) {
       console.log("socket message received", message);
