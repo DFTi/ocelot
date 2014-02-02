@@ -1,7 +1,6 @@
 all: bundle
 
 bundle: clean
-	grunt
 	cd build && zip app.nw -r ./* -x  \
 		node_modules/*/test\* \
 		node_modules/*/example\* \

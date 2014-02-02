@@ -13,7 +13,10 @@ var node_webkit_window = {
 
 module.exports = function(grunt) {
   grunt.initConfig({
-    clean: ["build"],
+    clean: {
+      build: ["build"],
+      tmp: ["tmp"]
+    },
     cssmin: {
       combine: {
         files: {
@@ -79,15 +82,26 @@ module.exports = function(grunt) {
         dest: "build/js/app.js"
       }
     },
+    watch: {
+      files: [
+        "src/**/*.js",
+        "templates/**/*.jade",
+        "css/**/*.css"
+      ],
+      tasks: ['default']
+    }
   });
 
   grunt.registerTask('default', [
     'clean',
     'cssmin',
     'jade',
-    'concat',
     'copy',
-    'set:nw:window'
+    'concat',
+    'clean:tmp',
+    'set:nw:window',
+    'make:bundle',
+    'clean:build'
   ]);
 
   grunt.registerTask('set:nw:window', 'Set node-webkit window settings', function() {
@@ -116,12 +130,23 @@ module.exports = function(grunt) {
     });
   });
 
+  grunt.registerTask("make:bundle", function() {
+    var done = this.async();
+    grunt.util.spawn({
+      cmd: "make",
+      args: ['bundle']
+    }, function(err, res, code) {
+      grunt.log.writeln("Bundling app.nw");
+      done();
+    });
+  });
 
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-jade');
+  grunt.loadNpmTasks('grunt-contrib-watch');
 
   grunt.registerTask("server", function() {
     this.async();
