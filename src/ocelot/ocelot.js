@@ -85,7 +85,7 @@ Ocelot.prototype.startDownload = function(payload, done, progress) {
   download.eachOffset(function(offset, meta, i) {
     if (meta.status !== VERIFIED) {
       working = true;
-      download.needs(offset, meta, progress);
+      download.needs(offset, meta, done, progress);
     }
   }.bind(this));
 

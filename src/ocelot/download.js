@@ -61,14 +61,15 @@ Download.prototype.remoteHash = function(offset) {
 
 /* when you need it you eventually get it. i.e.
  * this method brings the download to a finish */
-Download.prototype.needs = function(offset, meta, progress) {
+Download.prototype.needs = function(offset, meta, done, progress) {
   var self = this;
 
   var retry = function() {
-    self.needs(offset, meta, progress);
+    self.needs(offset, meta, done, progress);
   };
 
   meta.status = GETTING;
+  progress(0);
 
   var downloadURL = this.baseURL+"/"+this.id+"/"+offset;
   meta.path = temp.path({prefix: this.id+offset, suffix: '.part'});
@@ -103,6 +104,7 @@ Download.prototype.needs = function(offset, meta, progress) {
               if (self.totalParts === i+1) {
                 console.log("Done. "+finalPath);
                 progress(100);
+                done();
               }
             });
           } else {

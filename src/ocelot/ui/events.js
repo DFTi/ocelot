@@ -25,7 +25,11 @@ module.exports = function(ocelot, ui) {
     $('.message.no-downloads').addClass('hidden');
     $('table.downloads tbody').append($download);
     $('table.downloads').removeClass('hidden');
+    ocelot.on('ui:rx:download:'+data.id+':progress', function(percent) {
+      $download.find('.progress .bar').css('width', progress+'%');
+    });
   });
+
 
   /* Add new receiver to the Transmitter UI. Example: 
    * ocelot.emit('ui:tx:add_receiver', {id: 1, name: 'fake'}); */
