@@ -6,7 +6,6 @@ module.exports = {
   /* Try to connect to a transmitter.
    * Callback parameters: (err, socket) */
   connect: function(url, ocelot, callback) {
-    ocelot.data.rx.baseURL = url;
     // Cleanup old hosts so that the user can retry at will
     for (s in io.sockets) { delete io.sockets[s] }
     // Remove any existing socket
@@ -23,6 +22,7 @@ module.exports = {
       });
 
       socket.on('new:incoming:transmission', function (data) {
+        data.baseURL = url;
         ocelot.startDownload(data, function() {
           // Got all chunks
         }, function(percent) {

@@ -85,37 +85,36 @@ Ocelot.prototype.teardownReceiver = function () {
   }
 };
 
-Ocelot.prototype.startDownload = function(data, done, progress) {
+Ocelot.prototype.startDownload = function(dl, done, progress) {
   var self = this;
-  var offsets = Object.keys(info.index);
+  var offsets = Object.keys(dl.index);
   offsets.forEach(function(offset) {
-    // Check saved info about this offset, initialize if no info
-    if (!ocelot.data.rx.transfers[info.id][offset]) {
-      ocelot.data.rx.transfers[info.id][offset] = {
+    // Initialize offset metadata
+    if (!data.rx.transfers[dl.id][offset]) {
+      data.rx.transfers[dl.id][offset] = {
         status: DONT_GOT,
-        path: temp.path({prefix: offset, suffix: '.part'})
+        // TODO use a private app dir instead of temp
+        path: temp.path({prefix: dl.id+offset, suffix: '.part'})
       };
     }
-    var label = "part "+(i+1)+" of "+length;
-    // Check status of the offset, act accordingly
-    var status = data.rx.index[offset].status;
+    // Check status of this offset, act accordingly
+    var status = dlData.status;
     switch (status) {
       case DONT_GOT: {
-        data.rx.index[offset].status = GETTING;
-        var downloadURL = base+"/offset/"+offset;
-        var downloadPath = data.rx.index[offset].path;
+        data.rx.transfers[dl.id][offset] = GETTING;
+        var downloadURL = dl.baseURL+"/"+dl.id+"/"+offset;
+        var downloadPath = data.rx.transfers[dl.id][offset].path;
         var downloadFile = filed(downloadPath);
         var r = request(downloadURL).pipe(downloadFile);
-        /*r.on('data', function(data) {
+        r.on('data', function(data) {
           console.log("offset "+offset+"data", data);
-        // good place for progress bar
-        }); */
+          // TODO progress bar and throughput
+        });
         downloadFile.on('end', function () {
-            data.rx.index[offset].status = GOT;
-            });
-
+          data.rx.transfers[dl.id][offset] = GOT;
+        });
         downloadFile.on('error', function (err) {
-          data.rx.index[offset].status = DONT_GOT; 
+          data.rx.transfers[dl.id][offset] = DONT_GOT;
         });
         break;
       }
