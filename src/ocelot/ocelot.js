@@ -58,6 +58,8 @@ function Ocelot() {
       res.send(404);
     }
   });
+
+  this.socket = null;
 };
 
 util.inherits(Ocelot, events.EventEmitter);
@@ -73,50 +75,8 @@ Ocelot.prototype.setupReceiver = function(url, callback) {
     console.log("No connecting to yourself!");
     callback(false);
   } else {
-    this.teardownReceiver(function() {
-      console.log('Attempting connection to '+url);
-      receiver.connect(url, function(err, socket) {
-        setTimeout(function() {
-          if (socket) {
-            data.rx.socket = socket;
-            self.emit('ui:rx:connected');
-            callback();
-          } else {
-            self.teardownReceiver(function() {
-              self.emit('ui:rx:disconnected');
-              callback();
-            });
-          }
-        }, 1000);
-        if (err) {
-          if (!socket) err = new Error("Socket dead on arrival");
-          self.teardownReceiver(function() {
-            console.log("receiver.connect() error: ", err);
-            return self.emit('ui:rx:disconnected');
-          });
-        } else if (socket) {
-          socket.emit('receiver:ready', {
-            name: os.hostname()
-          });
-
-          socket.on('incoming:transmission', function (data) {
-            console.log("incoming transmission!");
-            console.log(data);
-          }); 
-        }
-      });
-    });
+    receiver.connect(url, ocelot);
   }
-};
-
-Ocelot.prototype.teardownReceiver = function(callback) {
-  if (data.rx.socket) {
-    console.log("Cleaning up an existing socket");
-    data.rx.socket.removeAllListeners().socket.disconnect();
-    data.rx.socket = null;
-    callback();
-  } else
-    callback();
 };
 
 Ocelot.prototype.setupTransmitter = function(port, callback) {
@@ -127,11 +87,6 @@ Ocelot.prototype.setupTransmitter = function(port, callback) {
     this.server.io = require('socket.io').listen(this.server);
     this.server.io.sockets.on('connection', function (socket) {
       data.tx.clients[socket.id] = socket;
-
-      socket.on('error', function(err) {
-        console.log("One of the receivers had an error.", err);
-        console.log("The receiver may eventually reconnect or be reaped.", err);
-      });
 
       socket.on('disconnect', function() {
         self.emit('ui:tx:del_receiver', { id: socket.id });
@@ -154,7 +109,8 @@ Ocelot.prototype.teardownTransmitter = function(callback) {
   var self = this;
   if (this.server && this.server.address()) {
     for (c in data.tx.clients) {
-      data.tx.clients[c].disconnect();
+      data.tx.clients[c].disconnect().removeAllListeners();
+      delete data.tx.clients[c];
     }
     this.server.close(function() {
       this.server = null;
