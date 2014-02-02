@@ -15,9 +15,10 @@ table.ui.table.segment.receivers.hidden
       th Optional Subdirectory
       th Hostname
   tbody
-.ui.fluid.action.input.transmission
-  input(type='file', name='host', value='')
-  .ui.button Queue Transmission
+.ui.form.transmission
+  .ui.fluid.action.input.transmission.hidden
+    input(type='file', name='fileToTransmit', value='')
+    .ui.queue.button Queue Transmission
 .ui.message.no-receivers No receivers are setup to accept transmission
 
 p

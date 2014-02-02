@@ -67,8 +67,8 @@ Ocelot.prototype.receiverConnected = function() {
   return (this.socket && this.socket.socket && this.socket.socket.connected);
 };
 
-Ocelot.prototype.buildIndex = function(filepath, callback) {
-  indexer.indexFile(filepath, PART_SIZE, callback);
+Ocelot.prototype.buildIndex = function(filepath, callback, progress) {
+  indexer.indexFile(filepath, PART_SIZE, callback, progress);
 };
 
   // Receiver 
@@ -126,6 +126,30 @@ Ocelot.prototype.teardownTransmitter = function(callback) {
       callback()
     }.bind(this));
   } else { callback() }
+};
+
+Ocelot.prototype.queueTransmission = function(filepath, recipients, done, indexProgress) {
+  var count = 0;
+  var sockets = recipients.map(function(id) { return data.tx.clients[id] });
+  console.log("Indexing...");
+  this.buildIndex(filepath, function(err, index) {
+    if (err) {
+      console.log("We had a fatal error while trying to index the file");
+    } else {
+      console.log("Indexing is done -- sending the transmission packets");
+      sockets.forEach(function(socket) {
+        count++;
+        var filename = path.basename(filepath);
+        var digest = md5sum.string(filepath);
+        socket.emit('new:incoming:transmission', {
+          filename: filename,
+          id: digest,
+          index: index
+        });
+      });
+    }
+    done(count);
+  }, indexProgress);
 };
 
 module.exports = Ocelot;
