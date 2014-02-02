@@ -29,7 +29,7 @@ var indexer = {
             }
             parts[String(offset)] = hash;
             if (Object.keys(parts).length === num_parts) {
-              return callback(null, parts);
+              return callback(null, parts, size);
             }
           });
         }

@@ -13,7 +13,21 @@ module.exports = function(ocelot, ui) {
     $('.remote-host').removeClass('loading');
   });
 
-  /* Add new receiver to the UI. Example: 
+  /* Add a new download to the Receiver UI. */
+  ocelot.on('ui:rx:add_download', function(data) {
+    if ($('tr.download[id='+data.id+']').length > 0) {
+      console.log("Someone tried to send the same file again. Ignoring");
+      return false;
+    }
+    var $download = $(JST['templates/rx/download'](data));
+    $download.data('index', data.index); // Bad place to store the index?
+    $download.data('id', data.id); // Used to create URL for part fetching
+    $('.message.no-downloads').addClass('hidden');
+    $('table.downloads tbody').append($download);
+    $('table.downloads').removeClass('hidden');
+  });
+
+  /* Add new receiver to the Transmitter UI. Example: 
    * ocelot.emit('ui:tx:add_receiver', {id: 1, name: 'fake'}); */
   ocelot.on('ui:tx:add_receiver', function(data) {
     var $receiver = $(JST['templates/tx/receiver'](data));
@@ -54,16 +68,17 @@ module.exports = function(ocelot, ui) {
           return false;
         }
 
-        sendTransmission.text('Indexing');
+        sendTransmission.text('Preparing to index ...');
         indexing = true;
 
-        ocelot.queueTransmission(filepath, ids, function(c) {
+        ocelot.queueTransmission(filepath, ids, function(c, filename) {
           sendTransmission.text("Indexing (100 %)");
           $('.receivers tr.receiver .ui.checkbox').checkbox('disable');
           setTimeout(function() {
             indexing = false;
             sendTransmission.text(defaultText);
-            window.alert("Delivered payload to "+c+" recipients. Expect that they will get "+filepath+" eventually.");
+            $('input[name=fileToTransmit]').val('');
+            window.alert("Delivered payload to "+c+" recipients. Expect that they will get "+filename+" eventually.");
           }, 300);
         }, function (percent) {
           sendTransmission.text("Indexing ("+percent+" %)");

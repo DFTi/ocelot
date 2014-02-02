@@ -16,21 +16,13 @@ p
   .ui.fluid.action.input.hidden
     input(type='text', name='rate_limit', value='', placeholder='0 (no rate limit)')
     .ui.button Set Maximum Rate (KB/s)
-.ui.label.teal.ribbon Queue
-- if (queue.length > 1)
-  table.ui.table.segment
-    thead
-      tr
-        th Progress
-        th Filename
-        th Rate
-    tbody
-      for item in queue
-        tr
-          td
-            .ui.green.progress
-              .bar(style='width: 93%;')
-          td some...thing.mp4
-          td 12.78 MB/s
-- else
-  .ui.message Nothing in the queue
+.ui.label.teal.ribbon Activity
+table.ui.table.segment.downloads.hidden
+  thead
+    tr
+      th Progress
+      th Filename
+      th Size
+      th Rate
+  tbody
+.ui.message.no-downloads No activity to report

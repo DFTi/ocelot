@@ -22,8 +22,7 @@ module.exports = {
       });
 
       socket.on('new:incoming:transmission', function (data) {
-        console.log("incoming transmission! we should render it on ui.rx.queue");
-        console.log(data);
+        ocelot.emit('ui:rx:add_download', data);
       }); 
 
       callback();

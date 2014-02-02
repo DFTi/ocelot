@@ -132,23 +132,25 @@ Ocelot.prototype.queueTransmission = function(filepath, recipients, done, indexP
   var count = 0;
   var sockets = recipients.map(function(id) { return data.tx.clients[id] });
   console.log("Indexing...");
-  this.buildIndex(filepath, function(err, index) {
+  this.buildIndex(filepath, function(err, index, size) {
+    var filename = path.basename(filepath);
     if (err) {
       console.log("We had a fatal error while trying to index the file");
     } else {
       console.log("Indexing is done -- sending the transmission packets");
       sockets.forEach(function(socket) {
         count++;
-        var filename = path.basename(filepath);
-        var digest = md5sum.string(filepath);
+        var id = md5sum.string(filepath);
+        data.tx[id] = filepath; // So that parts can be fetched
         socket.emit('new:incoming:transmission', {
           filename: filename,
-          id: digest,
+          id: id,
+          size: size,
           index: index
         });
       });
     }
-    done(count);
+    done(count, filename);
   }, indexProgress);
 };
 
