@@ -16,9 +16,12 @@ indexer = require(__dirname+'/indexer.js'),
 receiver = require(__dirname+'/receiver.js'),
 transmitter = require(__dirname+'/transmitter.js');
 
-
 var data = {
-  rx: {},
+  rx: {
+    binPath: '/Users/keyvan/Desktop/ocelotbin',
+    baseURL: null,
+    transfers: {}
+  },
   tx: {}
 },
 DONT_GOT = 0,
@@ -58,15 +61,14 @@ function Ocelot() {
 
 util.inherits(Ocelot, events.EventEmitter);
 
+/*
+ * Receiver
+ */
+
 Ocelot.prototype.receiverConnected = function() {
   return (this.socket && this.socket.socket && this.socket.socket.connected);
 };
 
-Ocelot.prototype.buildIndex = function(filepath, callback, progress) {
-  indexer.indexFile(filepath, PART_SIZE, callback, progress);
-};
-
-  // Receiver 
 Ocelot.prototype.setupReceiver = function(url, callback) {
   receiver.connect(url, this, callback);
 };
@@ -83,12 +85,103 @@ Ocelot.prototype.teardownReceiver = function () {
   }
 };
 
+Ocelot.prototype.startDownload = function(data, done, progress) {
+  var self = this;
+  var offsets = Object.keys(info.index);
+  offsets.forEach(function(offset) {
+    // Check saved info about this offset, initialize if no info
+    if (!ocelot.data.rx.transfers[info.id][offset]) {
+      ocelot.data.rx.transfers[info.id][offset] = {
+        status: DONT_GOT,
+        path: temp.path({prefix: offset, suffix: '.part'})
+      };
+    }
+    var label = "part "+(i+1)+" of "+length;
+    // Check status of the offset, act accordingly
+    var status = data.rx.index[offset].status;
+    switch (status) {
+      case DONT_GOT: {
+        data.rx.index[offset].status = GETTING;
+        var downloadURL = base+"/offset/"+offset;
+        var downloadPath = data.rx.index[offset].path;
+        var downloadFile = filed(downloadPath);
+        var r = request(downloadURL).pipe(downloadFile);
+        /*r.on('data', function(data) {
+          console.log("offset "+offset+"data", data);
+        // good place for progress bar
+        }); */
+        downloadFile.on('end', function () {
+            data.rx.index[offset].status = GOT;
+            });
+
+        downloadFile.on('error', function (err) {
+          data.rx.index[offset].status = DONT_GOT; 
+        });
+        break;
+      }
+      case GETTING: {
+        // TODO check to make sure it's still transferring
+        // for now, just trust that we're getting it...
+        break;
+      }
+      case GOT: {
+        data.rx.index[offset].status = VERIFYING;
+        md5sum(data.rx.index[offset].path, {}, function(hash) {
+          if (hash === index[offset]) {
+            data.rx.index[offset].status = VERIFIED;
+          } else {
+            data.rx.index[offset].status = DONT_GOT;
+          }
+        });
+        break;
+      }
+      case VERIFIED: {
+        // Need to find out if all parts are verified
+        // if so then we are done and can move onto the 
+        // concat phase and rebuild the payload
+        ++verifiedParts;
+      }
+      default: {
+        if (verifiedParts === length) {
+          var dir = data.rx.binPath;
+          if ( fs.existsSync(dir) && fs.statSync(dir).isDirectory() ) {
+            if (data.rx.poll) { clearInterval(data.rx.poll); };
+            console.log("All parts verified.");
+
+            var finalPath = path.join(dir, "ocelot.bin");
+
+            if ( fs.existsSync(finalPath) ) {
+              fs.unlinkSync(finalPath);
+            }
+
+            Object.keys(index).forEach(function(offset, i) {
+              var part = data.rx.index[offset];
+              console.log("Appending piece "+part.path);
+              fs.appendFileSync(finalPath, fs.readFileSync(part.path));
+              if (length === i+1) {
+                console.log("Done. "+finalPath);
+              }
+            });
+          } else {
+            console.log("Enter a valid directory path to continue");
+          }
+        }
+      }
+    }
+  });
+};
+
+/*
+ * Transmitter
+ */
+
 Ocelot.prototype.setupTransmitter = function(port, callback) {
   var self = this;
   this.teardownTransmitter(function() {
     data.tx.clients = {}
     this.server = http.createServer(app);
     this.server.io = require('socket.io').listen(this.server);
+    this.server.io.set('log level', 1);
     this.server.io.sockets.on('connection', function (socket) {
       data.tx.clients[socket.id] = socket;
 
@@ -147,6 +240,10 @@ Ocelot.prototype.queueTransmission = function(filepath, recipients, done, indexP
     }
     done(count, filename);
   }, indexProgress);
+};
+
+Ocelot.prototype.buildIndex = function(filepath, callback, progress) {
+  indexer.indexFile(filepath, PART_SIZE, callback, progress);
 };
 
 module.exports = Ocelot;

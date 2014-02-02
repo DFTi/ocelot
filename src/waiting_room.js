@@ -1,26 +1,3 @@
-// old ocelot prototypes
-
-  // Serving a file
-  serve: function(filepath) {
-    fs.exists(filepath, function(exists) {
-      if (exists) {
-        data.filepath = filepath;
-        ui.tx.log("Indexing, please wait ...");
-        setTimeout(function() {
-          ocelot.buildIndex(filepath, function(err, index){
-            if (err) {
-              ui.tx.log("Error: "+err.message);
-            } else {
-              data.index = index;
-              var num_parts = Object.keys(index).length;
-              ui.tx.log("Indexed "+num_parts+" parts. Ready!");
-            }
-          });
-        }, 200);
-      }
-    });
-  },
-
 
  /* Poll this host for index.json -- if we get one, save it and work on it
    * until we get all the parts so we can concat and get the final file */
