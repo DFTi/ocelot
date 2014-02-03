@@ -38,11 +38,13 @@ var Download = function(rootObject, remotePayload) {
   this.totalParts = Object.keys(this.data.payload.index).length;
   this.filename = this.data.payload.filename;
   this.eachOffset(function() {});
-  this.progress = function() {
-    return Math.ceil(this.verifiedParts / this.totalParts * 100);
-  }.bind(this)();
+  this.updateProgress();
 
   this.binDir = '/Users/keyvan/Projects/ocelot/test/fixtures';
+};
+
+Download.prototype.updateProgress = function() {
+  this.progress = Math.ceil(this.verifiedParts / this.totalParts * 100);
 };
 
 Download.prototype.eachOffset = function(cb) {
@@ -90,8 +92,10 @@ Download.prototype.needs = function(offset, meta, done, progress) {
       if (hash === self.remoteHash(offset)) {
         meta.status = VERIFIED;
         ++self.verifiedParts;
+        self.updateProgress();
+        progress(self.progress);
         if (self.verifiedParts === self.totalParts) {
-          self.reassemble();
+          self.concat(done, progress);
         }
       } else {
         meta.status = DONT_GOT;
