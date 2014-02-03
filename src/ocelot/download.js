@@ -35,9 +35,12 @@ var Download = function(rootObject, remotePayload) {
 
   this.id = this.data.payload.id;
   this.baseURL = this.data.payload.baseURL;
-  this.verifiedParts = 0;
   this.totalParts = Object.keys(this.data.payload.index).length;
   this.filename = this.data.payload.filename;
+  this.eachOffset(function() {});
+  this.progress = function() {
+    return Math.ceil(this.verifiedParts / this.totalParts * 100);
+  }.bind(this)();
 
   this.binDir = '/Users/keyvan/Projects/ocelot/test/fixtures';
 };
@@ -88,28 +91,7 @@ Download.prototype.needs = function(offset, meta, done, progress) {
         meta.status = VERIFIED;
         ++self.verifiedParts;
         if (self.verifiedParts === self.totalParts) {
-          console.log("All parts verified.");
-          var dir = self.binDir;
-          if ( fs.existsSync(dir) && fs.statSync(dir).isDirectory() ) {
-
-            var finalPath = path.join(dir, self.filename);
-
-            if ( fs.existsSync(finalPath) ) {
-              fs.unlinkSync(finalPath);
-            }
-
-            self.eachOffset(function(offset, meta, i) {
-              console.log("Appending piece "+meta.path);
-              fs.appendFileSync(finalPath, fs.readFileSync(meta.path));
-              if (self.totalParts === i+1) {
-                console.log("Done. "+finalPath);
-                progress(100);
-                done();
-              }
-            });
-          } else {
-            console.log("Enter a valid directory path to continue");
-          }
+          self.reassemble();
         }
       } else {
         meta.status = DONT_GOT;
@@ -121,6 +103,31 @@ Download.prototype.needs = function(offset, meta, done, progress) {
     meta.status = DONT_GOT;
     retry();
   });
-}
+};
+
+Download.prototype.concat = function(done, progress) {
+  var self = this;
+  var dir = self.binDir;
+  if ( fs.existsSync(dir) && fs.statSync(dir).isDirectory() ) {
+
+    var finalPath = path.join(dir, self.filename);
+
+    if ( fs.existsSync(finalPath) ) {
+      fs.unlinkSync(finalPath);
+    }
+
+    self.eachOffset(function(offset, meta, i) {
+      console.log("Appending piece "+meta.path);
+      fs.appendFileSync(finalPath, fs.readFileSync(meta.path));
+      if (self.totalParts === i+1) {
+        console.log("Done. "+finalPath);
+        progress(100);
+        done();
+      }
+    });
+  } else {
+    console.log("Enter a valid directory path to continue");
+  }
+};
 
 module.exports = Download;

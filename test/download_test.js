@@ -21,11 +21,11 @@ var payload = {
 };
 
 /*
-var storedData = {
-  // Contains the data that came from the server as a payload
-  remote: {
-  },
-  // and local work data like offset status
+   var storedData = {
+// Contains the data that came from the server as a payload
+remote: {
+},
+// and local work data like offset status
 }
 */
 
@@ -65,68 +65,77 @@ describe("Download", function() {
   });
 
 
-  beforeEach(function() {
-    root = {
-      xfers:
-        { '123':
-          { payload: { baseURL: 'somewhere', filename: 'foo.mp4', id: '123', size: 324132, index: { '0':'blabla', '1024':'bfawefawf'} },
-            offset: { '0': { status: 4, path: null }, '1024': { status: 0, path: null } } }
-      }
-    };
-    dl = new Download(root.xfers, payload);
-  });
-
-
-  it("should still show 0 verified parts", function() {
-    expect(dl.verifiedParts).to.eq(0);
-  });
-
-  it("tells us how many totalParts", function() {
-    expect(dl.totalParts).to.eq(2);
-  });
-
-  it("verifiedParts is set automatically when iterating over offsets", function() {
-    dl.eachOffset(sinon.stub());
-    dl.eachOffset(sinon.stub());
-    expect(dl.verifiedParts).to.eq(1);
-  });
-
-  it("has a base url", function() {
-    expect(dl.baseURL).to.eq('somewhere');
-  });
-
-  it("has an id", function() {
-    expect(dl.id).to.eq('123');
-  });
-
-  it("gives us the filename", function() {
-    expect(dl.filename).to.eq('foo.mp4');
-  });
-
-  it("gives us the remote md5 for the chunk at offset", function() {
-    expect(dl.remoteHash('1024')).to.eq('bfawefawf');
-  });
-
-
-  /*
-
-  describe("remote data getter", function() {
-    it("has id", function() {
-      expect(dl.remote('id')).to.eq('123');
+  describe("with existing stored data in root object", function() {
+    beforeEach(function() {
+      payload = {
+        baseURL: 'somewhere',
+        filename: 'foo.mp4',
+        id: '123',
+        size: 324132,
+        index: {
+          '0': 'blabla',
+          '1024': 'bfawefawf',
+          '2048': 'adwawd',
+          '4056': 'awefawef'
+        }
+      };
+      root = {
+        xfers: {
+          '123': {
+            payload: payload,
+            offset: {
+              '0': {
+                status: 4,
+                path: null
+              },
+              '1024': {
+                status: 0,
+                path: null
+              },
+              '2048': {
+                status: 2,
+                path: null
+              },
+              '4056': {
+                status: 2,
+                path: null
+              }
+            }
+          }
+        }
+      };
+      dl = new Download(root.xfers, payload);
     });
 
-    it("has filename", function() {
-      expect(dl.remote('filename')).to.eq('foo.mp4');
+
+    it("shows us how many verified parts", function() {
+      expect(dl.verifiedParts).to.eq(1);
     });
 
-    it("has size", function() {
-      expect(dl.remote('size')).to.eq(324132);
+    it("tells us how many totalParts", function() {
+      expect(dl.totalParts).to.eq(4);
     });
 
-    it("gives offset data from the index", function() {
-      expect(dl.remote('index')['0']).to.eq('blabla');
-      expect(dl.remote('index')['1024']).to.eq('bfawefawf');
+    describe("progress", function() {
+      it("can tell us % of verified chunks", function() {
+        expect(dl.progress).to.eq(25);
+      });
+    });
+
+    it("has a base url", function() {
+      expect(dl.baseURL).to.eq('somewhere');
+    });
+
+    it("has an id", function() {
+      expect(dl.id).to.eq('123');
+    });
+
+    it("gives us the filename", function() {
+      expect(dl.filename).to.eq('foo.mp4');
+    });
+
+    it("gives us the remote md5 for the chunk at offset", function() {
+      expect(dl.remoteHash('1024')).to.eq('bfawefawf');
     });
   });
- */
 });
