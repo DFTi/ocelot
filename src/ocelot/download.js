@@ -93,16 +93,32 @@ Download.prototype.needs = function(offset, meta, done, progress) {
   meta.path = temp.path({prefix: this.id+offset, suffix: '.part'});
   var downloadFile = filed(meta.path);
   var r = request(downloadURL).pipe(downloadFile);
+  console.log("requested chunk");
   r.on('data', function(data) {
-//    console.log("offset "+offset+"data", data);
+    console.log(data.length);
+    // console.log("offset "+offset+"data", data);
     // TODO progress bar and throughput
   });
 
+  r.on('error', function(err) {
+    console.log("request error", err);
+    meta.status = DONT_GOT;
+    retry();
+  });
+
+  downloadFile.on('error', function (err) {
+    console.log("part write error", err);
+    meta.status = DONT_GOT;
+    retry();
+  });
+
   downloadFile.on('end', function () {
+    console.log('got it');
     meta.status = GOT;
     meta.status = VERIFYING;
     md5sum(meta.path, {}, function(hash) {
       if (hash === self.remoteHash(offset)) {
+        console.log('verified it');
         meta.status = VERIFIED;
         ++self.verifiedParts;
         self.updateProgress();
@@ -120,11 +136,6 @@ Download.prototype.needs = function(offset, meta, done, progress) {
     });
   });
 
-  downloadFile.on('error', function (err) {
-    console.log(err);
-    meta.status = DONT_GOT;
-    retry();
-  });
 };
 
 Download.prototype.concat = function(done, progress) {
