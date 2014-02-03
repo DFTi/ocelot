@@ -123,31 +123,44 @@ Download.prototype.concat = function(done, progress) {
 
     var finalPath = path.join(dir, self.filename);
 
-    if ( fs.existsSync(finalPath) ) {
-      fs.unlinkSync(finalPath);
-    }
+    //var final = fs.createWriteStream(finalPath);
 
-    console.log("creating write stream");
-
-    var final = fs.createWriteStream(finalPath);
-    final.on('finish', function() {
+    /*final.on('finish', function() {
       console.log("Done. "+finalPath);
       progress(100);
       done();
-    });
+    });*/
 
-    console.log("iterating offsets a final time");
+    var isLastChunk = null,
+    bufSize = function() {
+
+    };
+
     self.eachOffset(function(offset, meta, i) {
       console.log("Appending piece "+meta.path);
-      var buffer = new Buffer(PART_SIZE);
+      var isLastChunk = (self.totalParts === i+1);
+//      size = (isLastChunk ? (self.data.payload.size - (self.totalParts * PART_SIZE)) : PART_SIZE);
+
+      var size = fs.statSync(meta.path).size;
+      console.log(size);
+      if (size === 0) {
+        console.log("wat?");
+      } else {
+      var buffer = new Buffer(size);
       var fd = fs.openSync(meta.path, 'r');
-      fs.readSync(fd, buffer, 0, PART_SIZE, 0);
-      final.write(buffer);
-      if (self.totalParts === i+1) {
-        console.log('last part written. ending write stream');
-        final.end();
+      fs.readSync(fd, buffer, 0, size, 0);
+//      var position = parseInt(offset, 10);
+      fs.appendFileSync(finalPath, buffer);
+      fs.close(fd);
+      fs.unlink(meta.path);
+      }
+      if (isLastChunk) {
+        console.log("Done. "+finalPath);
+        progress(100);
+        done();
       }
     });
+
 
   } else {
     console.log("Enter a valid directory path to continue");
