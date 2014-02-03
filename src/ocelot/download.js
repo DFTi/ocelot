@@ -46,6 +46,11 @@ var Download = function(rootObject, remotePayload, binPath) {
   this.binPath = '/Users/keyvan/Projects/ocelot/test/fixtures';
 };
 
+/*
+var Download = require('./src/ocelot/download.js');
+var d = new Download(ocelot.data.rx.transfers, {id: '89cc098911d7866859b539f7cfff3683'});
+*/
+
 Download.prototype.useBin = function(dir) {
   this.binPath = dir;
   return this;
@@ -109,6 +114,7 @@ Download.prototype.needs = function(offset, meta, done, progress) {
       } else {
         console.log("verification failed!")
         meta.status = DONT_GOT;
+        fs.unlinkSync(meta.path);
         retry();
       }
     });

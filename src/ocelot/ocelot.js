@@ -78,6 +78,9 @@ Ocelot.prototype.teardownReceiver = function () {
   }
 };
 
+/*
+ocelot.startDownload({id: '89cc098911d7866859b539f7cfff3683'}, $('tr.download').data('onDone'), $('tr.download').data('onProgress'))
+*/
 Ocelot.prototype.startDownload = function(payload, done, progress) {
   console.log("starting download");
   var download = new Download(data.rx.transfers, payload, data.rx.binPath);
