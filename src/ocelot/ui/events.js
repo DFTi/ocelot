@@ -23,11 +23,29 @@ module.exports = function(ocelot, ui) {
     $download.data('index', data.index); // Bad place to store the index?
     $download.data('id', data.id); // Used to create URL for part fetching
     $('.message.no-downloads').addClass('hidden');
-    $('table.downloads tbody').append($download);
+    $('table.downloads tbody').prepend($download);
     $('table.downloads').removeClass('hidden');
-    ocelot.on('ui:rx:download:'+data.id+':progress', function(percent) {
-      $download.find('.progress .bar').css('width', percent+'%');
+
+    $download.data('onProgress', function(percent) {
+      var bar = $download.find('.progress .bar'), percentString = percent+'%';
+      bar.text(percentString);
+      $download.find('.progress .bar').css('width', percentString);
     });
+
+    $download.data('onDone', function(finalPath) {
+      $download.find('.progress').removeClass('green').addClass('teal');
+    });
+
+    ocelot.on('ui:rx:download:'+data.id+':progress', $download.data('onProgress'));
+
+    ocelot.on('ui:rx:download:'+data.id+':done', $download.data('onDone'));
+
+    ocelot.on('ui:rx:download:'+data.id+':done:waiting_for_bin', function(download) {
+      $download.addClass('waiting-for-bin');
+      $download.data('download', download);
+      $download.find('.progress .bar').text("need to set bin");
+    });
+
   });
 
 

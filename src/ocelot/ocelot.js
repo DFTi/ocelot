@@ -16,7 +16,7 @@ Download = require(__dirname+'/download.js');
 
 var data = {
   rx: {
-    binPath: '/Users/keyvan/Desktop/ocelotbin',
+    binPath: '',
     transfers: {}
   },
   tx: {}
@@ -79,7 +79,7 @@ Ocelot.prototype.teardownReceiver = function () {
 };
 
 Ocelot.prototype.startDownload = function(payload, done, progress) {
-  var download = new Download(data.rx.transfers, payload);
+  var download = new Download(data.rx.transfers, payload, data.rx.binPath);
   var working = false;
   download.eachOffset(function(offset, meta, i) {
     if (meta.status !== VERIFIED) {

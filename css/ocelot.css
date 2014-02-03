@@ -20,3 +20,11 @@ body > #menu {
   -webkit-app-region: drag;
 }
 
+.ui.progress .bar {
+  text-align:right;
+}
+
+.ui.progress .bar .percent {
+  padding-right:5px;
+}
+

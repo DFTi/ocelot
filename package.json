@@ -12,6 +12,9 @@
   "bugs": {
     "url": "https://github.com/DFTi/ocelot/issues"
   },
+  "scripts": {
+    "test": "mocha test/**/*.js -R spec"
+  },
   "homepage": "https://github.com/DFTi/ocelot",
   "dependencies": {
     "graceful-fs": "~2.0.1",

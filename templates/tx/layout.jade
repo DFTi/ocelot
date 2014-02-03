@@ -21,9 +21,7 @@ table.ui.table.segment.receivers.hidden
     .ui.queue.button Queue Transmission
 .ui.message.no-receivers No receivers are setup to accept transmission
 
-p
-
-.ui.label.teal.ribbon Activity
+.ui.label.teal.ribbon.hidden Activity
 - if (activity.length > 1)
   table.ui.table.segment
     thead
@@ -40,4 +38,4 @@ p
           td some...thing.mp4
           td 12.78 MB/s
 - else
-  .ui.message No activity to report
+  .ui.message.hidden No activity to report

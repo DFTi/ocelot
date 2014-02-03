@@ -8,8 +8,13 @@ module.exports = function(ocelot) {
         $('.storage-path .button').click(function() {
           var chooser = $('.storage-path #dirDialog');
           chooser.change(function(e) {
-            ui.rx.bin.val($(this).val());
-            ocelot.data.rx.binPath = input;
+            var binPath = $(this).val();
+            ocelot.data.rx.binPath = binPath;
+            $('.table.downloads .download.waiting-for-bin').each(function(i,el) {
+              var dl = $(el).data('download');
+              dl.useBin(binPath).concat(dl.data('onDone'), dl.data('onProgress'));
+              $(el).removeClass('waiting-for-bin');
+            });
           });
           chooser.trigger('click');  
         });

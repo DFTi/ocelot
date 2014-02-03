@@ -15,7 +15,7 @@ constants = require('constants')
 ,   PART_SIZE = 2816000
 ;
 
-var Download = function(rootObject, remotePayload) {
+var Download = function(rootObject, remotePayload, binPath) {
   "use strict";
 
   if (!remotePayload.id) {
@@ -43,7 +43,12 @@ var Download = function(rootObject, remotePayload) {
   this.eachOffset(function() {});
   this.updateProgress();
 
-  this.binDir = '/Users/keyvan/Projects/ocelot/test/fixtures';
+  this.binPath = '/Users/keyvan/Projects/ocelot/test/fixtures';
+};
+
+Download.prototype.useBin = function(dir) {
+  this.binPath = dir;
+  return this;
 };
 
 Download.prototype.updateProgress = function() {
@@ -121,19 +126,11 @@ Download.prototype.concat = function(done, progress) {
   console.log("concat");
   // Here you could make progress 0 again and up it as you concat
   var self = this;
-  var dir = self.binDir;
+  var dir = self.binPath;
   if ( fs.existsSync(dir) && fs.statSync(dir).isDirectory() ) {
     console.log("bin is valid");
 
     var finalPath = path.join(dir, self.filename);
-
-    //var final = fs.createWriteStream(finalPath);
-
-    /*final.on('finish', function() {
-      console.log("Done. "+finalPath);
-      progress(100);
-      done();
-    });*/
 
     if (fs.existsSync(finalPath)) {
       fs.unlinkSync(finalPath);
@@ -153,13 +150,13 @@ Download.prototype.concat = function(done, progress) {
       if (lastChunk) {
         console.log("Done. "+finalPath);
         progress(100);
-        done();
+        done(finalPath);
       }
     });
 
 
   } else {
-    console.log("Enter a valid directory path to continue");
+    self.emit();
   }
 };
 
