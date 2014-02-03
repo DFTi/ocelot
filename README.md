@@ -10,7 +10,7 @@ Ocelot is a reliable file transfer tool
 * it's written entirely in Javascript and can be extended easily to add
   features such as notifications
 * it uses WebSockets for control and HTTP GET for transfers
-* it has a nice user interface powwered by semantic-ui
+* it has a nice user interface powered by semantic-ui
 
 # Usage
 
