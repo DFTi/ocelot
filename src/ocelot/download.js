@@ -106,6 +106,7 @@ Download.prototype.needs = function(offset, meta, done, progress) {
 };
 
 Download.prototype.concat = function(done, progress) {
+  // Here you could make progress 0 again and up it as you concat
   var self = this;
   var dir = self.binDir;
   if ( fs.existsSync(dir) && fs.statSync(dir).isDirectory() ) {
