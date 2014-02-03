@@ -44,6 +44,8 @@ var Download = function(rootObject, remotePayload, binPath) {
   this.updateProgress();
 
   this.binPath = '/Users/keyvan/Projects/ocelot/test/fixtures';
+
+  this.requests = 0;
 };
 
 /*
@@ -81,61 +83,65 @@ Download.prototype.remoteHash = function(offset) {
  * this method brings the download to a finish */
 Download.prototype.needs = function(offset, meta, done, progress) {
   var self = this;
+  self.requests++;
+  setTimeout(function() {
+    var retry = function() {
+      self.requests--;
+      console.log('retrying '+offset);
+      self.needs(offset, meta, done, progress);
+    };
 
-  var retry = function() {
-    console.log('retrying '+offset);
-    self.needs(offset, meta, done, progress);
-  };
+    meta.status = GETTING;
 
-  meta.status = GETTING;
+    var downloadURL = self.baseURL+"/"+self.id+"/"+offset;
+    meta.path = temp.path({prefix: self.id+offset, suffix: '.part'});
+    var downloadFile = filed(meta.path);
+    var r = request(downloadURL).pipe(downloadFile);
+    console.log("requested chunk");
 
-  var downloadURL = this.baseURL+"/"+this.id+"/"+offset;
-  meta.path = temp.path({prefix: this.id+offset, suffix: '.part'});
-  var downloadFile = filed(meta.path);
-  var r = request(downloadURL).pipe(downloadFile);
-  console.log("requested chunk");
-  r.on('data', function(data) {
-    console.log(data.length);
-    // console.log("offset "+offset+"data", data);
-    // TODO progress bar and throughput
-  });
-
-  r.on('error', function(err) {
-    console.log("request error", err);
-    meta.status = DONT_GOT;
-    retry();
-  });
-
-  downloadFile.on('error', function (err) {
-    console.log("part write error", err);
-    meta.status = DONT_GOT;
-    retry();
-  });
-
-  downloadFile.on('end', function () {
-    console.log('got it');
-    meta.status = GOT;
-    meta.status = VERIFYING;
-    md5sum(meta.path, {}, function(hash) {
-      if (hash === self.remoteHash(offset)) {
-        console.log('verified it');
-        meta.status = VERIFIED;
-        ++self.verifiedParts;
-        self.updateProgress();
-        progress(self.progress);
-        if (self.verifiedParts === self.totalParts) {
-          console.log("all verified");
-          self.concat(done, progress);
-        }
-      } else {
-        console.log("verification failed!")
-        meta.status = DONT_GOT;
-        fs.unlinkSync(meta.path);
-        retry();
-      }
+    r.on('data', function(data) {
+      console.log(data.length);
+      // console.log("offset "+offset+"data", data);
+      // TODO progress bar and throughput
     });
-  });
 
+    r.on('error', function(err) {
+      console.log("request error", err);
+      meta.status = DONT_GOT;
+      retry();
+    });
+
+    downloadFile.on('error', function (err) {
+      console.log("part write error", err);
+      meta.status = DONT_GOT;
+      retry();
+    });
+
+    downloadFile.on('end', function () {
+      self.requests--;
+      console.log('got it');
+      meta.status = GOT;
+      meta.status = VERIFYING;
+      md5sum(meta.path, {}, function(hash) {
+        if (hash === self.remoteHash(offset)) {
+          console.log('verified it');
+          meta.status = VERIFIED;
+          ++self.verifiedParts;
+          self.updateProgress();
+          progress(self.progress);
+          if (self.verifiedParts === self.totalParts) {
+            console.log("all verified");
+            self.concat(done, progress);
+          }
+        } else {
+          console.log("verification failed!")
+          meta.status = DONT_GOT;
+          fs.unlinkSync(meta.path);
+          retry();
+        }
+      });
+    });
+  }, self.requests * 2000);
 };
 
 Download.prototype.concat = function(done, progress) {
