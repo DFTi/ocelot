@@ -4,13 +4,16 @@ path = require('path'),
 request = require('request'),
 filed = require('filed'),
 temp = require('temp'),
-md5sum = require(__dirname+'/md5sum.js').file
-
+md5sum = require(__dirname+'/md5sum.js').file,
+Buffer = require('buffer').Buffer,
+constants = require('constants')
 ,   DONT_GOT = 0
 ,   GETTING = 1
 ,   GOT = 2
 ,   VERIFYING = 3
 ,   VERIFIED = 4
+,   PART_SIZE = 2816000
+;
 
 var Download = function(rootObject, remotePayload) {
   "use strict";
@@ -95,6 +98,7 @@ Download.prototype.needs = function(offset, meta, done, progress) {
         self.updateProgress();
         progress(self.progress);
         if (self.verifiedParts === self.totalParts) {
+          console.log("all verified");
           self.concat(done, progress);
         }
       } else {
@@ -110,10 +114,12 @@ Download.prototype.needs = function(offset, meta, done, progress) {
 };
 
 Download.prototype.concat = function(done, progress) {
+  console.log("concat");
   // Here you could make progress 0 again and up it as you concat
   var self = this;
   var dir = self.binDir;
   if ( fs.existsSync(dir) && fs.statSync(dir).isDirectory() ) {
+    console.log("bin is valid");
 
     var finalPath = path.join(dir, self.filename);
 
@@ -121,15 +127,28 @@ Download.prototype.concat = function(done, progress) {
       fs.unlinkSync(finalPath);
     }
 
+    console.log("creating write stream");
+
+    var final = fs.createWriteStream(finalPath);
+    final.on('finish', function() {
+      console.log("Done. "+finalPath);
+      progress(100);
+      done();
+    });
+
+    console.log("iterating offsets a final time");
     self.eachOffset(function(offset, meta, i) {
       console.log("Appending piece "+meta.path);
-      fs.appendFileSync(finalPath, fs.readFileSync(meta.path));
+      var buffer = new Buffer(PART_SIZE);
+      var fd = fs.openSync(meta.path, 'r');
+      fs.readSync(fd, buffer, 0, PART_SIZE, 0);
+      final.write(buffer);
       if (self.totalParts === i+1) {
-        console.log("Done. "+finalPath);
-        progress(100);
-        done();
+        console.log('last part written. ending write stream');
+        final.end();
       }
     });
+
   } else {
     console.log("Enter a valid directory path to continue");
   }
