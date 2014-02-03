@@ -23,12 +23,12 @@ module.exports = {
 
       socket.on('new:incoming:transmission', function (data) {
         data.baseURL = url;
+        ocelot.emit('ui:rx:add_download', data);
         ocelot.startDownload(data, function(download) {
           ocelot.emit('ui:rx:download:'+data.id+':done', download);
         }, function(percent) {
           ocelot.emit('ui:rx:download:'+data.id+':progress', percent);
         });
-        ocelot.emit('ui:rx:add_download', data);
       }); 
 
       callback();

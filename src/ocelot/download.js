@@ -83,7 +83,6 @@ Download.prototype.needs = function(offset, meta, done, progress) {
   };
 
   meta.status = GETTING;
-  progress(0);
 
   var downloadURL = this.baseURL+"/"+this.id+"/"+offset;
   meta.path = temp.path({prefix: this.id+offset, suffix: '.part'});

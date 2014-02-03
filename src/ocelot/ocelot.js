@@ -79,8 +79,11 @@ Ocelot.prototype.teardownReceiver = function () {
 };
 
 Ocelot.prototype.startDownload = function(payload, done, progress) {
+  console.log("starting download");
   var download = new Download(data.rx.transfers, payload, data.rx.binPath);
   var working = false;
+  progress(0);
+  console.log("sent progress 0, checking out offsets to see what is needed");
   download.eachOffset(function(offset, meta, i) {
     if (meta.status !== VERIFIED) {
       working = true;
