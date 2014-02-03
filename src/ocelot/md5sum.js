@@ -1,10 +1,10 @@
 var fs = require('graceful-fs'),
-crypto = require('crypto');
+crypt = require('crypto');
 
 var md5sumFile = function(path, options, callback) {
   // the file you want to get the hash
   var fd = fs.createReadStream(path, options);
-  var hash = crypto.createHash('md5');
+  var hash = crypt.createHash('md5');
   hash.setEncoding('hex');
 
   fd.on('end', function() {
@@ -20,7 +20,7 @@ var md5sumFile = function(path, options, callback) {
 
 
 var md5sumString = function(string) {
-  var hash = crypto.createHash('md5');
+  var hash = crypt.createHash('md5');
   hash.setEncoding('hex');
   hash.write(string);
   hash.end();

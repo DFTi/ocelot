@@ -24,11 +24,8 @@ module.exports = {
       socket.on('new:incoming:transmission', function (data) {
         data.baseURL = url;
         ocelot.startDownload(data, function() {
-          // Got all chunks
-          console.log('done callback called');
+          // move to done
         }, function(percent) {
-          // Progressbar
-          console.log('percent reported as '+percent);
           ocelot.emit('ui:rx:download:'+data.id+':progress', percent);
         });
         ocelot.emit('ui:rx:add_download', data);
