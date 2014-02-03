@@ -26,7 +26,7 @@ module.exports = function(ocelot, ui) {
     $('table.downloads tbody').append($download);
     $('table.downloads').removeClass('hidden');
     ocelot.on('ui:rx:download:'+data.id+':progress', function(percent) {
-      $download.find('.progress .bar').css('width', progress+'%');
+      $download.find('.progress .bar').css('width', percent+'%');
     });
   });
 
