@@ -73,6 +73,7 @@ Download.prototype.needs = function(offset, meta, done, progress) {
   var self = this;
 
   var retry = function() {
+    console.log('retrying '+offset);
     self.needs(offset, meta, done, progress);
   };
 
@@ -102,12 +103,15 @@ Download.prototype.needs = function(offset, meta, done, progress) {
           self.concat(done, progress);
         }
       } else {
+        console.log("verification failed!")
         meta.status = DONT_GOT;
+        retry();
       }
     });
   });
 
   downloadFile.on('error', function (err) {
+    console.log(err);
     meta.status = DONT_GOT;
     retry();
   });
@@ -131,30 +135,22 @@ Download.prototype.concat = function(done, progress) {
       done();
     });*/
 
-    var isLastChunk = null,
-    bufSize = function() {
-
-    };
+    if (fs.existsSync(finalPath)) {
+      fs.unlinkSync(finalPath);
+    }
 
     self.eachOffset(function(offset, meta, i) {
       console.log("Appending piece "+meta.path);
-      var isLastChunk = (self.totalParts === i+1);
-//      size = (isLastChunk ? (self.data.payload.size - (self.totalParts * PART_SIZE)) : PART_SIZE);
-
-      var size = fs.statSync(meta.path).size;
+      var lastChunk = (self.totalParts === i+1);
+      var size = (lastChunk ? fs.statSync(meta.path).size : PART_SIZE);
       console.log(size);
-      if (size === 0) {
-        console.log("wat?");
-      } else {
       var buffer = new Buffer(size);
       var fd = fs.openSync(meta.path, 'r');
       fs.readSync(fd, buffer, 0, size, 0);
-//      var position = parseInt(offset, 10);
       fs.appendFileSync(finalPath, buffer);
       fs.close(fd);
       fs.unlink(meta.path);
-      }
-      if (isLastChunk) {
+      if (lastChunk) {
         console.log("Done. "+finalPath);
         progress(100);
         done();
