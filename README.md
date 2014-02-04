@@ -1,3 +1,5 @@
+WARNING: this project is not yet living up to its claim of reliable transfer in lossy situations -- it is a research project that starts with HTTP & WebSockets and follows the path to evaluating SPDY, TCP itself, and so on. Watch this space
+
 ## ocelot.js
 
 Ocelot is a reliable file transfer tool
